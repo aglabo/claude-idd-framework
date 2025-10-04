@@ -1,0 +1,22 @@
+{
+  "name": "claude-idd-freamwork",
+  "_comment": "@(#) : monorepo for @aglabo/ag-logger",
+  "version": "0.0.1",
+  "description": "lightweight & pluggable logger for TypeScript",
+  "author": "atsushifx <https://github.com/atsushifx>",
+  "license": "MIT",
+  "type": "module",
+  "keywords": [],
+  "packageManager": "pnpm@10.18.0",
+  "engines": {
+    "node": ">=20",
+    "pnpm:": ">=10"
+  },
+  "scripts": {
+    "prepare": "lefthook install"
+  },
+  "devDependencies": {
+    "@commitlint/config-conventional": "^19.8.1",
+    "@commitlint/types": "^19.8.1"
+  }
+}

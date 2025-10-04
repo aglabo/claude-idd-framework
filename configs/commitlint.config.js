@@ -1,25 +1,14 @@
-// src: configs/commitlint.config.js
-// @(#) : commitlint configuration for this workspace
-/**
- * @version   1.0.0
- * @author    atsushifx <https://github.com/atsushifx/>
- * @since     2025-04-12
- * @license   MIT
- *
- * @description<<
- *
- * This file defines commitlint rules for this project.
- * It loads the standard configuration from @commitlint/config-conventional
- * and applies a formatter for CLI output.
- *
- * <<
- */
+// src: shared/configs/commitlint.config.base.ts
+// @(#) : commitlint base configuration
+//
+// Copyright (c) 2025 atsushifx <https://github.com/atsushifx>
+//
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
 
 // type check for typescript
-// import type { UserConfig } from '@commitlint/types'//;
-
 // commit lint common configs
-const baseConfig = {
+const defaultConfig = {
   extends: ['@commitlint/config-conventional'],
   rules: {
     'type-enum': [2, 'always', [
@@ -47,4 +36,4 @@ const baseConfig = {
 };
 
 // export
-export default baseConfig;
+export default defaultConfig;

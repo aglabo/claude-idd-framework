@@ -1,11 +1,3 @@
----
-name: Pull Request Template
-description: Pull Request format for contributing changes
-title: "feat: [short description]"
-labels: ["pull request"]
-assignees: ["atsushifx"]
----
-
 ## ✨ Overview
 
 Briefly explain what this Pull Request changes and why.
@@ -22,7 +14,7 @@ List the key changes included in this PR:
 
 - [ ] Added/updated files or modules
 - [ ] Removed deprecated logic or configs
-- [ ] Refactored[X]for clarity/performance
+- [ ] Refactored for clarity/performance
 - [ ] Other (please describe below)
 
 ---
@@ -36,15 +28,34 @@ Link any issues this PR closes or relates to:
 
 ---
 
+## ⚠️ Breaking Changes
+
+> **Note**: Skip this section if there are no breaking changes.
+
+If this PR introduces breaking changes, list them here:
+
+- **What breaks**: Description of the breaking change
+- **Migration path**: How to update existing code
+- **Deprecation timeline**: When the old API will be removed (if applicable)
+
+> Example:
+>
+> - **What breaks**: `Logger.log()` now requires a level parameter
+> - **Migration path**: Replace `logger.log(msg)` with `logger.log('info', msg)`
+> - **Deprecation timeline**: Old API removed in v2.0.0
+
+---
+
 ## ✅ Checklist
 
 Please confirm the following before requesting review:
 
-- [ ] Lint checks pass (`pnpm lint`)
-- [ ] Tests pass (`pnpm test`)
+- [ ] Code follows project coding standards
+- [ ] Tests pass locally
 - [ ] Documentation is updated (if applicable)
 - [ ] PR title follows [Conventional Commits](https://www.conventionalcommits.org/)
 - [ ] Descriptions and examples are clear
+- [ ] No breaking changes (or documented in Breaking Changes section)
 
 ---
 

@@ -1,46 +1,43 @@
 // src: .vscode/cspell.json
-// @(#) : cspell config for user-centric settings
+// @(#) : cspell settings for this workspace
 //
-// @version   1.0.1
-// @since     2025-04-25
-// @author    atsushifx <https://github.com/atsushifx/>
-// @license   MIT
+// Copyright (c) 2025 atsushifx <https://github.com/atsushifx>
 //
-// @description<<
-//
-// Defines spelling rules and custom dictionaries for consistent spell-checking in the project.
-// Integrates both user-level and workspace-specific dictionaries for maximum flexibility.
-//
-// <<
-
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
 {
   "$schema": "https://raw.githubusercontent.com/streetsidesoftware/cspell/main/packages/cspell-types/cspell.schema.json",
   "version": "0.2",
+  "import": [
+    "${env:XDG_CONFIG_HOME}/vscode/cspell.config.json"
+  ],
   "language": "en",
   "caseSensitive": true,
-  "allowCompoundWords": true,
-
   "dictionaryDefinitions": [
     {
-      "name": "user-dic",
-      "description": "dictionary words for user settings",
-      "path": "${env:XDG_CONFIG_HOME}/vscode/cSpell/dicts/user.dic",
-      "addWords": true,
-      "scope": "user"
-    },
-    {
       "name": "project-dic",
-      "description": "user dictionary for this project",
+      "description": "dictionary for this project",
       "path": "./cspell/dicts/project.dic",
       "addWords": true,
       "scope": "workspace"
     }
   ],
-
   "dictionaries": [
+    "en-us",
+    // special terms
+    "software-terms",
+    "public-licenses",
+    // programming languages dictionaries
+    "markdown",
+    "css",
+    "html",
+    "fullstack",
+    "typescript",
+    "shellscript",
+    "powershell",
+    "vim",
+    // user defined dictionaries
     "user-dic",
     "project-dic"
-  ],
-
-  "useGitignore": true
+  ]
 }

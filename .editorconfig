@@ -1,9 +1,11 @@
+## src: ./.editorconfig
+##
 ## @(#) : editorconfig common template for atsushifx
 ##
 ## EditorConfig is awesome: https://EditorConfig.org
 #
-# @version  1.2.1
-# @date     2025-04-25
+# @version  1.0.0
+# @since    2025-05-14
 # @author   atsushifx <https://github.com/atsushifx/>
 # @license  MIT
 #
@@ -28,6 +30,11 @@ indent_size = 2
 tab_width = 2
 
 # ─────────────────────────────
+# Programming Language
+# ─────────────────────────────
+
+
+# ─────────────────────────────
 # Documents
 # ─────────────────────────────
 [*.md]
@@ -46,12 +53,7 @@ tab_width = 2
 # ─────────────────────────────
 # YAML
 # ─────────────────────────────
-[*.yaml]
-indent_style = space
-indent_size = 2
-tab_width = 2
-
-[*.yml]
+[*.{yaml,yml}]
 indent_style = space
 indent_size = 2
 tab_width = 2
