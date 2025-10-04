@@ -1,0 +1,57 @@
+# src: lefthook.yml
+## @(#) : lefthook config
+#
+# @version  1.0.1
+# @date     2025-04-25
+# @author   atsushifx <https://github.com/atsushifx/>
+# @license  MIT
+#
+# @description<<
+#
+# Git hook configuration powered by Lefthook.
+# Ensures commit hygiene with secret scanning and commit message linting.
+#
+#<<
+
+pre-commit:
+  parallel: true
+  commands:
+    gitleaks:
+      run: gitleaks protect --config ./configs/gitleaks.toml --staged
+
+    secretlint:
+      glob: "**/*"
+      run: >
+        secretlint
+        --secretlintrc ./configs/secretlint.config.yaml
+        --secretlintignore .gitignore
+        --maskSecrets
+        "{staged_files}"
+
+    textlint:
+      glob: "**/*.md"
+      run: >
+        textlint
+        --config ./configs/textlintrc.yaml
+        --cache
+        --cache-location .cache/textlint_cache
+        "{staged_files}"
+
+    markdownlint:
+      glob: "**/*.md"
+      run: >
+        markdownlint-cli2
+        --config ./configs/.markdownlint.yaml
+        "{staged_files}"
+
+prepare-commit-msg:
+  commands:
+    prepare-by-codegpt:
+      run: bash -c 'scripts/prepare-commit-msg.sh'
+
+
+commit-msg:
+  parallel: true
+  commands:
+    commitlint:
+      run: commitlint --config ./configs/commitlint.config.js --edit
