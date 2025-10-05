@@ -16,7 +16,7 @@ description: GitHub Issue 作成・管理システム - issue-generatorエージ
 
 # 設定変数
 config:
-  temp_dir: temp/issues
+  temp_dir: temp/idd/issues
   issue_types:
     - feature
     - bug
@@ -65,7 +65,7 @@ issue-generator エージェントを使用して、GitHub Issue を作成・管
 # 設定初期化
 setup_issue_env() {
   export REPO_ROOT=$(git rev-parse --show-toplevel)
-  export ISSUES_DIR="$REPO_ROOT/temp/issues"
+  export ISSUES_DIR="$REPO_ROOT/temp/idd/issues"
   export SESSION_FILE="$ISSUES_DIR/.last-session"
   export PAGER="${PAGER:-less}"
   export EDITOR="${EDITOR:-code}"
@@ -748,13 +748,13 @@ fi
    - YML 構造解析
    - 対話的な情報収集
    - Issue ドラフト生成
-   - `temp/issues/new-{timestamp}-{type}-{slug}.md` に保存
+   - `temp/idd/issues/new-{timestamp}-{type}-{slug}.md` に保存
    - セッション保存: `save_session()` でセッション情報を保存
 5. **完了報告**: エージェントが生成結果を報告
 
 ### セッション管理
 
-各サブコマンド実行後、`temp/issues/.last-session` にセッション情報を保存:
+各サブコマンド実行後、`temp/idd/issues/.last-session` にセッション情報を保存:
 
 - 引数なしでコマンド実行時、セッションファイル優先で Issue を選択
 - 後方互換性: セッションがない場合は最新ファイルを使用
@@ -781,7 +781,7 @@ Issue ドラフトファイルは決定的な命名規則を使用:
 
 ```bash
 /idd-issue list
-# → temp/issues/ 内のすべてのIssueドラフトを表示
+# → temp/idd/issues/ 内のすべてのIssueドラフトを表示
 ```
 
 ### Issue表示・編集

@@ -6,7 +6,7 @@ description: Pull Request自動生成コマンド - pr-generatorエージェン�
 
 # 設定変数
 config:
-  temp_dir: temp/pr
+  temp_dir: temp/idd/pr
   draft_file: pr_current_draft.md
   default_editor: ${EDITOR:-code}
   default_pager: ${PAGER:-less}
@@ -88,16 +88,17 @@ changes:
 #!/bin/bash
 # Setup
 REPO_ROOT=$(git rev-parse --show-toplevel)
+PR_DIR="$REPO_ROOT/temp/idd/pr"
 OUTPUT_FILE="${1:-pr_current_draft.md}"  # --output=XXX から解析
-DRAFT_PATH="$REPO_ROOT/temp/pr/$OUTPUT_FILE"
-LAST_DRAFT="$REPO_ROOT/temp/pr/.last_draft"
-mkdir -p "$REPO_ROOT/temp/pr"
+DRAFT_PATH="$PR_DIR/$OUTPUT_FILE"
+LAST_DRAFT="$PR_DIR/.last_draft"
+mkdir -p "$PR_DIR"
 
 # Parse --output option if provided
 for arg in "$@"; do
   if [[ "$arg" =~ ^--output=(.+)$ ]]; then
     OUTPUT_FILE="${BASH_REMATCH[1]}"
-    DRAFT_PATH="$REPO_ROOT/temp/pr/$OUTPUT_FILE"
+    DRAFT_PATH="$PR_DIR/$OUTPUT_FILE"
   fi
 done
 
@@ -124,7 +125,8 @@ echo "⏳ Please wait for pr-generator agent to complete..."
 ```bash
 #!/bin/bash
 REPO_ROOT=$(git rev-parse --show-toplevel)
-LAST_DRAFT="$REPO_ROOT/temp/pr/.last_draft"
+PR_DIR="$REPO_ROOT/temp/idd/pr"
+LAST_DRAFT="$PR_DIR/.last_draft"
 OUTPUT_FILE="pr_current_draft.md"
 
 # Load last used filename if available
@@ -132,7 +134,7 @@ if [[ -f "$LAST_DRAFT" ]]; then
   OUTPUT_FILE=$(cat "$LAST_DRAFT")
 fi
 
-DRAFT_FILE="$REPO_ROOT/temp/pr/$OUTPUT_FILE"
+DRAFT_FILE="$PR_DIR/$OUTPUT_FILE"
 PAGER="${PAGER:-less}"
 
 if [[ -f "$DRAFT_FILE" ]]; then
@@ -150,7 +152,8 @@ fi
 ```bash
 #!/bin/bash
 REPO_ROOT=$(git rev-parse --show-toplevel)
-LAST_DRAFT="$REPO_ROOT/temp/pr/.last_draft"
+PR_DIR="$REPO_ROOT/temp/idd/pr"
+LAST_DRAFT="$PR_DIR/.last_draft"
 OUTPUT_FILE="pr_current_draft.md"
 
 # Load last used filename if available
@@ -158,7 +161,7 @@ if [[ -f "$LAST_DRAFT" ]]; then
   OUTPUT_FILE=$(cat "$LAST_DRAFT")
 fi
 
-DRAFT_FILE="$REPO_ROOT/temp/pr/$OUTPUT_FILE"
+DRAFT_FILE="$PR_DIR/$OUTPUT_FILE"
 EDITOR="${EDITOR:-code}"
 
 if [[ -f "$DRAFT_FILE" ]]; then
@@ -176,7 +179,8 @@ fi
 ```bash
 #!/bin/bash
 REPO_ROOT=$(git rev-parse --show-toplevel)
-LAST_DRAFT="$REPO_ROOT/temp/pr/.last_draft"
+PR_DIR="$REPO_ROOT/temp/idd/pr"
+LAST_DRAFT="$PR_DIR/.last_draft"
 OUTPUT_FILE="pr_current_draft.md"
 
 # Load last used filename if available
@@ -184,7 +188,7 @@ if [[ -f "$LAST_DRAFT" ]]; then
   OUTPUT_FILE=$(cat "$LAST_DRAFT")
 fi
 
-DRAFT_FILE="$REPO_ROOT/temp/pr/$OUTPUT_FILE"
+DRAFT_FILE="$PR_DIR/$OUTPUT_FILE"
 
 if [[ ! -f "$DRAFT_FILE" ]]; then
   echo "❌ No current PR draft found."
@@ -204,7 +208,7 @@ fi
 echo "🚀 Creating PR: $TITLE"
 
 # Extract body (skip H1 title and empty line)
-BODY_FILE="$REPO_ROOT/temp/pr/pr_body.txt"
+BODY_FILE="$PR_DIR/pr_body.txt"
 tail -n +3 "$DRAFT_FILE" > "$BODY_FILE"
 
 # Create PR using GitHub CLI
@@ -246,12 +250,12 @@ fi
    - `.github/PULL_REQUEST_TEMPLATE.md` 読み込み
    - Conventional Commit 形式のタイトル生成
    - PR ドラフト生成 (1行目: H1 タイトル、3行目以降: テンプレート構造)
-   - `temp/pr/{output_file}` に保存
+   - `temp/idd/pr/{output_file}` に保存
 5. **完了報告**: エージェントが生成結果を報告
 
 `/idd-pr push` コマンドは以下の流れで動作:
 
-1. **ドラフト読み込み**: `temp/pr/` から最後に生成されたドラフトを読み込み
+1. **ドラフト読み込み**: `temp/idd/pr/` から最後に生成されたドラフトを読み込み
 2. **タイトル抽出**: 1行目の H1 見出しからタイトルを取得
 3. **本文抽出**: 3行目以降 (H1 と空行をスキップ) を PR 本文として抽出
 4. **PR 作成**: `gh pr create` を使用して GitHub に PR を作成
