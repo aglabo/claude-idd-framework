@@ -14,11 +14,12 @@
 set -euCo pipefail
 
 ## Constants
-readonly REPO_ROOT="$(git rev-parse --show-toplevel)"
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+readonly REPO_ROOT
 
 ## Variables
 GIT_COMMIT_MSG=".git/COMMIT_EDITMSG"
-TMP_MSG="./temp/commit_current_msg.md"
+# TMP_MSG="./temp/commit_current_msg.md"
 FLAG_OUTPUT_TO_STDOUT=true  # デフォルトは標準出力
 
 ## Parse command line options
@@ -67,6 +68,14 @@ make_context_block() {
 
 ## 関数: Codex CLI を呼ぶ
 generate_commit_message() {
+  local test_message="${1:-}"
+
+  # テストメッセージが指定されている場合はそのまま返す
+  if [[ -n "$test_message" ]]; then
+    echo "${test_message}"
+    return 0
+  fi
+
   local full_output
   full_output=$({
     cat .claude/agents/commit-message-generator.md
