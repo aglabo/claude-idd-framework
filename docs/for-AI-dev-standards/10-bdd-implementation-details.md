@@ -2,7 +2,7 @@
 header:
   - src: 10-bdd-implementation-details.md
   - @(#): Spec-Driven BDD Implementation Guide
-title: agla-logger
+title: claude-idd-framework
 description: コーディングエージェント向け atsushifx 式 BDD 実践ガイド
 version: 1.0.0
 created: 2025-09-29

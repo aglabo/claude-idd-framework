@@ -2,7 +2,7 @@
 header:
   - src: 03-mcp-tools-usage.md
   - @(#): MCP Tools Complete Usage Guide
-title: agla-logger
+title: claude-idd-framework
 description: lsmcp・serena-mcp・codex の完全活用ガイドとトークン効率最適化手法
 version: 1.0.0
 created: 2025-09-27

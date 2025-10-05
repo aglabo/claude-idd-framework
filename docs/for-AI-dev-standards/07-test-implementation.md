@@ -2,7 +2,7 @@
 header:
   - src: 07-test-implementation.md
   - @(#): Test Implementation and BDD Hierarchy
-title: agla-logger
+title: claude-idd-framework
 description: AIコーディングエージェント向けテスト実装・BDD階層構造ガイド
 version: 1.0.0
 created: 2025-09-27
