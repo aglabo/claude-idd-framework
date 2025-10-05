@@ -52,25 +52,6 @@ if ! command -v jq &> /dev/null; then
   echo ""
   echo "Installation instructions:"
   echo "  - Windows: scoop install jq"
-# setup-idd.sh - Setup script for claude-idd-framework
-set -euo pipefail
-
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-
-echo "📦 Setting up claude-idd-framework..."
-echo ""
-
-# Change to repository root
-cd "$REPO_ROOT" || exit 1
-
-# 1. Check jq installation
-echo "🔍 Checking jq installation..."
-if ! command -v jq &> /dev/null; then
-  echo "❌ jq not found. Please install jq."
-  echo ""
-  echo "Installation instructions:"
-  echo "  - Windows: choco install jq"
   echo "  - macOS: brew install jq"
   echo "  - Linux: sudo apt install jq"
   echo ""

@@ -30,15 +30,50 @@
 # @author atsushifx
 # @version 1.0.0
 # @license MIT
+# src: ./scripts/prepare-commit-msg.sh
+# @(#): Prepare commit message using Codex CLI
+#
+# @file prepare-commit-msg.sh
+# @brief Prepare commit message using Codex CLI
+# @description
+#   Automatically generates Conventional Commits format messages by analyzing
+#   staged changes and recent commit history using Codex CLI.
+#
+#   Features:
+#   - Conventional Commits format compliance
+#   - Context-aware message generation from git diff and log
+#   - Dual output modes: stdout or Git buffer
+#   - Skips generation if existing message found (Git buffer mode)
+#
+# @example
+#   # Output to stdout
+#   prepare-commit-msg.sh
+#
+#   # Output to Git commit buffer
+#   prepare-commit-msg.sh --git-buffer
+#
+#   # Short form for Git buffer
+#   prepare-commit-msg.sh --to-buffer
+#
+# @exitcode 0 Success
+# @exitcode 1 Error during message generation
+#
+# @author atsushifx
+# @version 1.0.0
+# @license MIT
 #
 # Copyright (c) 2025 atsushifx <https://github.com/atsushifx>
 # Released under the MIT License.
 # https://opensource.org/licenses/MIT
 #
 
+set -euo pipefail
+mkdir -p temp
+
 ##
 # @description Repository root path
-readonly REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || echo ".")"
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+readonly REPO_ROOT
 
 ##
 # @description Git commit message file path
@@ -87,6 +122,8 @@ parse_options() {
     esac
   done
 }
+
+
 
 ##
 # @description Check if existing commit message exists in file
