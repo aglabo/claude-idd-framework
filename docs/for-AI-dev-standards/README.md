@@ -50,8 +50,9 @@ copyright:
 #### 4. 品質保証・高度なガイド
 
 8. [AI 用品質ゲート・自動チェック](08-quality-assurance.md)
-9. [ソースコードテンプレート・JSDoc ルール](09-templates-and-standards.md)
-10. [atsushifx 式 BDD 実装ガイド詳細](10-bdd-implementation-details.md)
+9. [ドキュメント品質チェック](09-document-quality-assurance.md)
+10. [ソースコードテンプレート・JSDoc ルール](10-templates-and-standards.md)
+11. [atsushifx 式 BDD 実装ガイド詳細](11-bdd-implementation-details.md)
 
 <!-- markdownlint-enable ol-prefix -->
 
@@ -66,14 +67,15 @@ copyright:
 #### 実装時
 
 1. [BDD 開発フロー・Red-Green-Refactor サイクル](05-bdd-workflow.md) で BDD サイクル実行
-2. [atsushifx 式 BDD 実装ガイド詳細](10-bdd-implementation-details.md) で詳細実装ガイド確認
+2. [atsushifx 式 BDD 実装ガイド詳細](11-bdd-implementation-details.md) で詳細実装ガイド確認
 3. [プロジェクトナビゲーション・コード検索](04-code-navigation.md) でプロジェクト理解
 4. [コーディング規約・MCP 活用パターン](06-coding-conventions.md) で規約遵守
 
 #### 品質確認時
 
-1. [AI 用品質ゲート・自動チェック](08-quality-assurance.md) で品質ゲート実行
-2. [テスト実装・BDD 階層構造](07-test-implementation.md) でテスト検証
+1. [AI 用品質ゲート・自動チェック](08-quality-assurance.md) でコード品質ゲート実行
+2. [ドキュメント品質チェック](09-document-quality-assurance.md) でドキュメント品質確認
+3. [テスト実装・BDD 階層構造](07-test-implementation.md) でテスト検証
 
 ### プロジェクト理解
 

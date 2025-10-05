@@ -1,6 +1,6 @@
 ---
 header:
-  - src: 09-templates-and-standards.md
+  - src: 10-templates-and-standards.md
   - @(#): Templates and Coding Standards
 title: agla-logger
 description: AIコーディングエージェント向けソースコードテンプレート・JSDocルール集
