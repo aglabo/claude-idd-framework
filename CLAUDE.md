@@ -1,179 +1,314 @@
-# ag-logger モノレポ開発ガイド
+# CLAUDE.md
 
-このファイルは、Claude Code (claude.ai/code) が ag-logger モノレポでの作業時に参照する総合ガイドです。
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## 目次・ドキュメント構成
+## Repository Overview
 
-すべての詳細情報は目的別に整理された 2 つのディレクトリに分類されています。
+**claude-idd-framework** is a documentation-based development framework for AI coding agents (Claude Code). It provides unified development standards, writing rules, custom slash commands, and custom agents to enhance AI-assisted development workflows.
 
-### プロジェクト関連ドキュメント (`docs/projects/`)
+This repository focuses on documentation and configuration rather than traditional code. The primary purpose is to establish consistent development practices across projects using Claude Code.
 
-- [00-project-overview.md](docs/projects/00-project-overview.md): プロジェクト全体概要・パッケージ構造
-- [01-architecture.md](docs/projects/01-architecture.md): 技術アーキテクチャ・設計パターン
-- [02-roadmap.md](docs/projects/02-roadmap.md): プロジェクトロードマップ・未了タスク
-- [03-plugin-system.md](docs/projects/03-plugin-system.md): プラグインシステム詳細ガイド
-- [04-type-system.md](docs/projects/04-type-system.md): TypeScript 型システムリファレンス
-- [05-symbol-navigation.md](docs/projects/05-symbol-navigation.md): シンボルマップ・コードナビゲーション
-- [06-utility-functions.md](docs/projects/06-utility-functions.md): ユーティリティ関数カタログ
-- [07-command-reference.md](docs/projects/07-command-reference.md): 開発コマンド完全リファレンス
-
-### 開発ルール・ガイドライン (`docs/rules/`)
-
-- [01-development-workflow.md](docs/rules/01-development-workflow.md): BDD 開発フロー・実装手順
-- [02-coding-conventions.md](docs/rules/02-coding-conventions.md): コーディング規約・ベストプラクティス
-- [03-quality-assurance.md](docs/rules/03-quality-assurance.md): 多層品質保証システム
-- [04-mcp-tools-mandatory.md](docs/rules/04-mcp-tools-mandatory.md): 🔴必須 MCP ツール使用要件
-- [05-code-navigation-commands.md](docs/rules/05-code-navigation-commands.md): コードナビゲーション・MCP コマンド
-- [06-source-code-template.md](docs/rules/06-source-code-template.md): ソースコードテンプレート統一ルール
-- [07-bdd-test-hierarchy.md](docs/rules/07-bdd-test-hierarchy.md): BDD 階層構造統一ルール
-- [08-jsdoc-describe-blocks.md](docs/rules/08-jsdoc-describe-blocks.md): JSDoc describe ブロック統一ルール
-- [09-todo-task-management.md](docs/rules/09-todo-task-management.md): タスク管理統一ルール
-
-## クイックスタート
-
-### 最重要情報 (開発開始前必読)
-
-1. [MCPツール必須使用](docs/rules/04-mcp-tools-mandatory.md) 🔴
-   - すべての開発作業で lsmcp・serena-mcp の使用が必須
-   - コード理解・実装・テスト・デバッグの全段階で活用
-
-2. [BDD開発プロセス](docs/rules/01-development-workflow.md)
-   - Red-Green-Refactor サイクルの厳格遵守
-   - 1 message = 1 test の原則
-
-3. [品質ゲート](docs/rules/03-quality-assurance.md)
-   - コミット前の必須チェック 5 項目
-   - lefthook による自動品質保証
-
-### 必須コマンドセット
+## Repository Structure
 
 ```bash
-# 型チェック (最優先)
-pnpm run check:types
+.claude/
+├── commands/             # Custom slash commands for Claude Code
+│   ├── idd-commit-message.md  # Generate Conventional Commits messages
+│   ├── idd-issue.md           # Create structured GitHub Issues
+│   ├── idd-pr.md              # Generate Pull Request drafts
+│   ├── sdd.md                 # Spec-Driven Development workflow
+│   ├── serena.md              # Serena MCP integration
+│   └── validate-debug.md      # 6-stage quality validation workflow
 
-# 4層テストシステム
-pnpm run test:develop      # Unit tests (27ファイル)
-pnpm run test:functional   # Functional tests (4ファイル)
-pnpm run test:ci           # Integration tests (14ファイル)
-pnpm run test:e2e          # E2E tests (8ファイル)
+└── agents/               # Custom agents for Claude Code
+    ├── bdd-coder.md                # BDD implementation with strict Red-Green-Refactor
+    ├── commit-message-generator.md # Conventional Commits message generation
+    ├── issue-generator.md          # Structured GitHub Issue drafts
+    └── pr-generator.md             # Pull Request draft generation
 
-# コード品質
-pnpm run lint:all
+docs/
+├── writing-rules/        # Writing guidelines (generic)
+│   ├── 01-writing-rules.md           # Prohibited patterns & project-specific notation
+│   ├── 02-frontmatter-guide.md       # Frontmatter metadata rules
+│   ├── 03-document-template.md       # Document templates
+│   ├── 04-custom-slash-commands.md   # Slash command authoring guide
+│   └── 05-custom-agents.md           # Agent authoring guide
 
-# フォーマット
-pnpm run check:dprint
+└── for-AI-dev-standards/ # AI development standards (project-specific)
+    ├── 01-setup-and-onboarding.md         # Environment setup & onboarding
+    ├── 02-core-principles.md              # Core principles & MCP mandatory rules
+    ├── 03-mcp-tools-usage.md              # MCP tools complete guide
+    ├── 04-code-navigation.md              # Project navigation & code search
+    ├── 05-bdd-workflow.md                 # BDD workflow & Red-Green-Refactor cycle
+    ├── 06-coding-conventions.md           # Coding conventions & MCP patterns
+    ├── 07-test-implementation.md          # Test implementation & BDD hierarchy
+    ├── 08-quality-assurance.md            # Quality gates & automated checks
+    ├── 09-document-quality-assurance.md   # Document quality criteria
+    ├── 10-templates-and-standards.md      # Source code templates & JSDoc rules
+    └── 11-bdd-implementation-details.md   # atsushifx-style BDD implementation details
 
-# ビルド確認
-pnpm run build
+configs/                  # Configuration files (reference only)
 ```
 
-## プロジェクト概要 (要約)
+## Essential Commands
 
-### 基本情報
-
-- プロジェクト: ag-logger - TypeScript 用軽量・プラガブルロガー
-- アーキテクチャ: pnpm ワークスペース使用のモノレポ
-- 現在フォーカス: AglaError フレームワークへの移行
-
-### パッケージ構成
+### Git Hooks Setup
 
 ```bash
-packages/
-└── @aglabo/             # メインパッケージ群
-    ├── agla-logger-core/     # 構造化ロガーパッケージ
-    └── agla-error-core/      # エラーハンドリングフレームワーク
+# Install lefthook hooks (required after initial clone)
+pnpm run prepare
 ```
 
-### 技術スタック
+### Git Hooks
 
-- ESM-first + CommonJS 互換性
-- デュアルビルド: `lib/` (CJS), `module/` (ESM)
-- TypeScript 厳格モード + 包括的型定義
-- 4層テスト戦略: Unit/Functional/Integration/E2E
+This repository uses **lefthook** for Git hooks:
 
-## 重要な開発ルール
+- **pre-commit**: Runs gitleaks to prevent committing secrets
+- **prepare-commit-msg**: Auto-generates commit message suggestions via `scripts/prepare-commit-msg.sh`
+- **commit-msg**: Validates commit messages with commitlint (Conventional Commits format)
 
-### ファイル編集制限
+## Key Development Practices
 
-<!-- textlint-disable ja-technical-writing/max-comma -->
+### 1. MCP Tools are Mandatory
 
-- 編集禁止: `lib/`, `module/`, `maps/`, `.cache/`, `node_modules/`
-- 編集対象: `src/`, `configs/`, `__tests__/`, `tests/`
+**ALL development tasks MUST use MCP tools (lsmcp, serena-mcp) for:**
 
-<!-- textlint-enable -->
+- Understanding project structure and existing code patterns
+- Searching symbols, files, and patterns
+- Analyzing impact of changes before implementation
+- Verifying code integrity after changes
 
-### セキュリティ必須事項
+Before editing ANY file, use MCP tools to understand existing patterns and conventions.
 
-- 機密情報 (API キー・パスワード) のコード記述禁止
-- 機密情報のログ出力禁止
-- secretlint・gitleaks による自動検出
+### 2. Documentation Standards
 
-### 文書作成ルール
+#### Writing Rules (Critical)
 
-<!-- markdownlint-disable line-length -->
-<!-- textlint-disable ja-technical-writing/sentence-length -->
+- **NEVER** use bullet points with bold emphasis (`- **Item**: description`)
+  - Use headings instead (`### Item`)
+- **Parentheses**: Always use half-width `()` not full-width `()`
+- **No excessive decoration**: Avoid emojis, exclamation marks (except README.md overview)
+- **No verbose preambles**: Avoid phrases like "以下に説明します" (explained below)
+- **Objective tone**: Technical writing should be factual, not subjective
 
-ドキュメントを新規作成または更新する前に、必ず `docs/writing/README.md`, `docs/writing/writing-rules.md`, `docs/writing/document-template.md`, `docs/writing/frontmatter-guide.md` を精読し、記載された禁則事項とテンプレートを厳守する。
+#### Frontmatter Requirements
 
-- 括弧は半角使用: 日本語文書内でも括弧は半角 `()` を使用する
-- 括弧前のスペース: 日本語文章内で括弧を使用する際は括弧の前に半角スペースを入れる
-- 箇条書きの形式: `**項目名**:` ではなく `項目名:` の形式を使用する
-- 絵文字使用制限: 必要最低限の使用に留める (重要度表示 🔴、状態表示のみ)
-- 例: `特殊ロガー (フィルタリング無視)`, `項目名: 説明内容`
+All Markdown files must include YAML frontmatter with:
 
-<!-- textlint-enable -->
-<!-- markdownlint-enable -->
-
-### MCPツール必須活用
-
-- 🔴 **必須**: すべての開発段階で MCP ツール使用
-- 🔴 **必須**: コード理解・パターン調査・影響範囲確認
-- 🔴 **必須**: 実装前の既存パターン研究
-
-## 現在の状況・優先事項
-
-### 最高優先度 (Critical)
-
-1. AglaError 型システム完成: 型安全性・整合性向上
-2. テスト最適化: 実行時間短縮・カバレッジ向上
-
-### 完了済み主要マイルストーン ✅
-
-- AglaError 基本実装完了 (@aglabo/agla-error-core v0.1.0)
-- 4 層テストアーキテクチャ確立 (53 テストファイル)
-- ドキュメント体系化完了 (13 ファイル作成)
-- 品質保証システム確立 (lefthook + 5 項目チェック)
-- パッケージ構造の最適化 (@aglabo 統一: agla-logger-core, agla-error-core)
-
-## 詳細情報へのアクセス
-
-各トピックの詳細は対応するドキュメントファイルを参照してください。
-
-### プロジェクト理解・概要
-
-- プロジェクト全体を理解したい → [プロジェクト概要](docs/projects/00-project-overview.md)
-- 技術アーキテクチャを知りたい → [アーキテクチャ](docs/projects/01-architecture.md)
-- タスク・ロードマップを確認したい → [プロジェクトロードマップ](docs/projects/02-roadmap.md)
-- コマンドを確認したい → [コマンドリファレンス](docs/projects/07-command-reference.md)
-
-### 高度な機能・技術情報
-
-- プラグインシステムを使いたい → [プラグインシステム](docs/projects/03-plugin-system.md)
-- 型システムを理解したい → [型システムリファレンス](docs/projects/04-type-system.md)
-- 効率的にナビゲートしたい → [シンボルナビゲーション](docs/projects/05-symbol-navigation.md)
-- ユーティリティ関数を知りたい → [ユーティリティ関数](docs/projects/06-utility-functions.md)
-
-### 開発ルール・ガイドライン
-
-- 開発を始める前 → [MCPツール必須要件](docs/rules/04-mcp-tools-mandatory.md)
-- 実装を始める → [開発ワークフロー](docs/rules/01-development-workflow.md)
-- コード規約を確認したい → [コーディング規約](docs/rules/02-coding-conventions.md)
-- 品質を確保したい → [品質保証システム](docs/rules/03-quality-assurance.md)
-- ソースコードテンプレートを確認したい → [ソースコードテンプレート](docs/rules/06-source-code-template.md)
-- BDD テストルールを確認したい → [BDD階層構造ルール](docs/rules/07-bdd-test-hierarchy.md)
-- JSDoc ルールを確認したい → [JSDoc describeブロックルール](docs/rules/08-jsdoc-describe-blocks.md)
-- タスク管理ルールを確認したい → [タスク管理統一ルール](docs/rules/09-todo-task-management.md)
-
+```yaml
 ---
+header:
+  - src: [filename]
+  - @(#): [brief description]
+title: claude-idd-framework
+description: [document purpose]
+version: 1.0.0
+created: YYYY-MM-DD
+authors:
+  - atsushifx
+changes:
+  - YYYY-MM-DD: [change description]
+copyright:
+  - Copyright (c) 2025 atsushifx <https://github.com/atsushifx>
+  - This software is released under the MIT License.
+  - https://opensource.org/licenses/MIT
+---
+```
 
-開発成功の鍵: MCP ツールの活用 + 体系化されたドキュメントの参照 + 品質ゲートの遵守。
+#### Document Quality Checklist
+
+Before completing any documentation work, verify:
+
+1. **Heading hierarchy**: h1 → h2 → h3 (no skipping levels)
+2. **Sentence quality**: Clear, concise, appropriate length
+3. **Markdown syntax**: Code blocks have language tags, consistent list formatting
+4. **Frontmatter**: All required fields present and properly formatted
+5. **Project-specific rules**: Half-width parentheses, unified technical terms, proper link format
+
+### 3. Custom Tools Workflow
+
+#### Custom Slash Commands
+
+Use these commands directly in Claude Code:
+
+- `/idd-commit-message`: Generate Conventional Commits messages from staged changes
+- `/idd-issue [feature|bug|enhancement|task] "title"`: Create structured GitHub Issues
+- `/idd-pr`: Generate Pull Request drafts from branch changes
+- `/sdd [init|req|spec|tasks|coding|commit]`: Spec-Driven Development workflow
+- `/validate-debug`: Run 6-stage comprehensive quality validation
+
+#### Custom Agents
+
+Launch these agents via the Task tool for specialized workflows:
+
+- `bdd-coder`: Strict BDD implementation (Red-Green-Refactor, 1 message = 1 test)
+- `commit-message-generator`: Conventional Commits message generation
+- `issue-generator`: Structured GitHub Issue draft creation
+- `pr-generator`: Pull Request draft generation
+
+### 4. BDD Development (if applicable to future code)
+
+If implementing code in this repository, follow **atsushifx-style BDD**:
+
+**Mandatory principles:**
+
+- **1 message = 1 test**: Never implement multiple tests in a single iteration
+- **3-layer BDD structure**: Given/Feature → When → Then
+- **RED-GREEN-REFACTOR**: Must verify RED before GREEN, GREEN before REFACTOR
+
+**BDD hierarchy:**
+
+```typescript
+describe('Given: prerequisite/Feature', () => {
+  describe('When: action/condition', () => {
+    it('Then: [tag] - expected result', () => {
+      // Arrange (Given details)
+      // Act (When details)
+      // Assert (Then details)
+    });
+  });
+});
+```
+
+**Required tags for Then clauses:**
+
+- `[正常]`: Normal/success cases
+- `[異常]`: Error/exception cases
+- `[エッジケース]`: Edge cases/boundary values
+
+### 5. Onboarding Process
+
+When starting work in this repository:
+
+```bash
+# 1. Update MCP tool memory with current codebase
+"lsmcp のメモリを、現在のコードベース/ドキュメントを読んで更新して"
+"serena-mcp のメモリを、現在のコードベース/ドキュメントを読んで更新して"
+
+# 2. Read core documentation
+Read docs/writing-rules/01-writing-rules.md
+Read docs/for-AI-dev-standards/README.md
+Read docs/for-AI-dev-standards/02-core-principles.md
+
+# 3. Verify available custom tools
+/help
+```
+
+## Architecture Highlights
+
+### Documentation-Centric Design
+
+Unlike typical code repositories, this project's "implementation" consists of:
+
+- **Writing Rules** (`docs/writing-rules/`): Generic documentation guidelines applicable across projects
+- **AI Dev Standards** (`docs/for-AI-dev-standards/`): AI-specific development standards, MCP tool usage patterns, BDD workflows
+- **Custom Tools** (`.claude/`): Reusable slash commands and agents that extend Claude Code capabilities
+
+### MCP Tool Integration
+
+This framework assumes and requires MCP (Model Context Protocol) tools:
+
+- **lsmcp**: Language Server MCP for symbol search, LSP operations, code navigation
+- **serena-mcp**: Structured code analysis, symbol indexing, pattern search
+
+All development workflows are designed around MCP tool usage for understanding existing code before making changes.
+
+### Quality-First Approach
+
+Multiple layers of quality assurance:
+
+1. **Git hooks**: Pre-commit secret scanning, commit message validation
+2. **Document quality gates**: Manual checklists in `09-document-quality-assurance.md`
+3. **Validation workflows**: `/validate-debug` command for comprehensive checks
+
+## Important Constraints
+
+### Tool Independence
+
+- Documentation must remain tool-agnostic where possible
+- Avoid hardcoding specific IDE or editor features
+- MCP tools are the exception (explicitly required for AI development)
+
+### File Editing Restrictions
+
+- **DO NOT EDIT**: Generated outputs, cache directories, dependency folders
+- **EDIT FREELY**: Documentation in `docs/`, custom tools in `.claude/`, configuration in `configs/`
+
+### Commit Message Format
+
+All commits must follow Conventional Commits:
+
+```
+type(scope): subject
+
+body
+
+footer
+```
+
+Use `/idd-commit-message` or the `commit-message-generator` agent to generate compliant messages.
+
+## Common Workflows
+
+### Creating New Documentation
+
+1. Read `docs/writing-rules/01-writing-rules.md` for prohibited patterns
+2. Use `docs/writing-rules/03-document-template.md` as template
+3. Follow frontmatter guide in `docs/writing-rules/02-frontmatter-guide.md`
+4. Verify against quality checklist in `docs/for-AI-dev-standards/09-document-quality-assurance.md`
+
+### Creating Custom Slash Commands
+
+1. Read `docs/writing-rules/04-custom-slash-commands.md` for authoring rules
+2. Create file in `.claude/commands/[name].md`
+3. Include proper frontmatter with `allowed-tools`, `argument-hint`, `description`
+4. Implement as Python snippet (standard library only)
+
+### Creating Custom Agents
+
+1. Read `docs/writing-rules/05-custom-agents.md` for authoring rules
+2. Create file in `.claude/agents/[name].md`
+3. Include frontmatter with `name`, `description`, `tools`, `model: inherit`
+4. Structure: Agent Overview → Activation Conditions → Core Functionality → Integration Guidelines
+
+## Troubleshooting
+
+### MCP Tool Errors
+
+```bash
+# Verify project root path
+"プロジェクトルートのパスを確認して"
+
+# Rebuild symbol index
+"lsmcp でシンボルインデックスを再構築して"
+
+# Re-run onboarding
+"serena-mcp でオンボーディングを再実行して"
+```
+
+### Documentation Quality Issues
+
+1. Read `docs/for-AI-dev-standards/09-document-quality-assurance.md` for quality criteria
+2. Read `docs/writing-rules/01-writing-rules.md` for prohibited patterns
+3. Manually verify checklist items in quality assurance doc
+
+### Custom Tool Errors
+
+```bash
+# Check command help
+/[command-name] help
+
+# Read command documentation
+Read .claude/commands/[command-name].md
+Read .claude/agents/[agent-name].md
+
+# Verify frontmatter configuration
+# Check allowed-tools, argument-hint, etc.
+```
+
+## See Also
+
+- **README.md**: Basic repository overview
+- **docs/for-AI-dev-standards/README.md**: AI development standards index
+- **docs/writing-rules/README.md**: Writing guidelines index
+- **CONTRIBUTING.md**: Contribution guidelines
