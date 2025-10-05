@@ -1,28 +1,70 @@
 #!/usr/bin/env bash
-# src: ./scripts/prepare-codex-msg.sh
-# @(#) : prepare commit message using Codex CLI if no message exists
+# src: ./scripts/prepare-commit-msg.sh
+# @(#): Prepare commit message using Codex CLI
 #
-# Usage:
-#   prepare-commit-msg.sh                  # 標準出力にコミットメッセージを出力
-#   prepare-commit-msg.sh --git-buffer     # Gitバッファーにコミットメッセージを出力
-#   prepare-commit-msg.sh --to-buffer      # Gitバッファーにコミットメッセージを出力（短縮形）
+# @file prepare-commit-msg.sh
+# @brief Prepare commit message using Codex CLI
+# @description
+#   Automatically generates Conventional Commits format messages by analyzing
+#   staged changes and recent commit history using Codex CLI.
 #
-# Copyright (c) 2025 atsushifx
+#   Features:
+#   - Conventional Commits format compliance
+#   - Context-aware message generation from git diff and log
+#   - Dual output modes: stdout or Git buffer
+#   - Skips generation if existing message found (Git buffer mode)
+#
+# @example
+#   # Output to stdout
+#   prepare-commit-msg.sh
+#
+#   # Output to Git commit buffer
+#   prepare-commit-msg.sh --git-buffer
+#
+#   # Short form for Git buffer
+#   prepare-commit-msg.sh --to-buffer
+#
+# @exitcode 0 Success
+# @exitcode 1 Error during message generation
+#
+# @author atsushifx
+# @version 1.0.0
+# @license MIT
+#
+# Copyright (c) 2025 atsushifx <https://github.com/atsushifx>
 # Released under the MIT License.
 # https://opensource.org/licenses/MIT
+#
 
 set -euo pipefail
+mkdir -p temp
 
-## Constants
-REPO_ROOT="$(git rev-parse --show-toplevel)"
-readonly REPO_ROOT
+##
+# @description Repository root path
+readonly REPO_ROOT="$(git rev-parse --show-toplevel)"
 
-## Variables
+##
+# @description Git commit message file path
+# @default .git/COMMIT_EDITMSG
 GIT_COMMIT_MSG=".git/COMMIT_EDITMSG"
-# TMP_MSG="./temp/commit_current_msg.md"
-FLAG_OUTPUT_TO_STDOUT=true  # デフォルトは標準出力
 
-## 関数: コマンドラインオプションを解析
+##
+# @description Output to stdout (true) or Git buffer (false)
+# @default true
+FLAG_OUTPUT_TO_STDOUT=true
+
+##
+# @description Parse command-line options
+# @arg $@ string Command-line arguments to parse
+# @option --git-buffer Output to Git commit buffer (.git/COMMIT_EDITMSG)
+# @option --to-buffer Short form for --git-buffer
+# @option --help|-h Display usage information
+# @example
+#   parse_options "$@"
+# @exitcode 0 If parsing succeeds
+# @exitcode 1 If unknown option provided
+# @see FLAG_OUTPUT_TO_STDOUT
+# @see GIT_COMMIT_MSG
 parse_options() {
   while [[ $# -gt 0 ]]; do
     case $1 in
@@ -32,8 +74,8 @@ parse_options() {
         ;;
       --help|-h)
         echo "Usage: $0 [--git-buffer|--to-buffer] [commit_msg_file]"
-        echo "  --git-buffer, --to-buffer : Gitバッファーにコミットメッセージを出力"
-        echo "  デフォルト                 : 標準出力にコミットメッセージを出力"
+        echo "  --git-buffer, --to-buffer : Output to Git commit buffer"
+        echo "  default                    : Output to stdout"
         exit 0
         ;;
       -*)
@@ -41,7 +83,7 @@ parse_options() {
         exit 1
         ;;
       *)
-        # 引数がオプションでない場合はコミットメッセージファイルとして扱う
+        # Non-option argument treated as commit message file
         GIT_COMMIT_MSG="$1"
         shift
         ;;
@@ -49,15 +91,30 @@ parse_options() {
   done
 }
 
-mkdir -p temp
 
-## 関数: 既存ﾒ・bｾZｰ[ｼﾞWがあるかﾁ`ｪFｯbｸN
+
+##
+# @description Check if existing commit message exists in file
+# @arg $1 string Path to commit message file
+# @example
+#   if has_existing_message ".git/COMMIT_EDITMSG"; then
+#     echo "Message already exists"
+#   fi
+# @exitcode 0 If non-comment, non-empty content found
+# @exitcode 1 If only comments or empty lines found
 has_existing_message() {
   local file="$1"
   grep -vE '^\s*(#|$)' "$file" | grep -q '.'
 }
 
-## 関数: diff と log をまとめる
+##
+# @description Create context block with git logs and diff
+# @example
+#   context=$(make_context_block)
+# @stdout Git logs (last 10 commits) and staged diff with delimiters
+# @exitcode 0 Always succeeds
+# @see git-log(1)
+# @see git-diff(1)
 make_context_block() {
   echo "----- GIT LOGS -----"
   git log --oneline -10 || echo "No logs available."
@@ -68,11 +125,20 @@ make_context_block() {
   echo "----- END DIFF -----"
 }
 
-## 関数: Codex CLI を呼ぶ
+##
+# @description Generate commit message using Codex CLI
+# @arg $1 string Optional test message (for testing purposes)
+# @example
+#   commit_msg=$(generate_commit_message)
+#   echo "$commit_msg"
+# @stdout Generated Conventional Commits format message
+# @exitcode 0 If generation succeeds
+# @see codex(1)
+# @see make_context_block
 generate_commit_message() {
   local test_message="${1:-}"
 
-  # テストメッセージが指定されている場合はそのまま返す
+  # Return test message if provided
   if [[ -n "$test_message" ]]; then
     echo "${test_message}"
     return 0
@@ -86,8 +152,8 @@ generate_commit_message() {
   } | codex exec --model gpt-5-codex
   )
 
-  # === commit header === と === commit footer === に囲まれた部分を抽出
-  # ----- END DIFF ----- より後ろを取得 (存在しない場合は全体)
+  # Extract content between === commit header === and === commit footer ===
+  # Get content after ----- END DIFF ----- (or entire output if not found)
   local after_diff
   if echo "$full_output" | grep -q "^----- END DIFF -----$"; then
     after_diff=$(echo "$full_output" | sed -n '/^----- END DIFF -----$/,$p' | sed '1d')
@@ -95,23 +161,34 @@ generate_commit_message() {
     after_diff="$full_output"
   fi
 
-  # === commit header === と === commit footer === の間を抽出
+  # Extract content between header and footer markers
   echo "$after_diff" | \
     sed -n '/^=== commit header ===/,/^=== commit footer ===/p' | \
     sed '1d;$d'
 
 }
 
-## 関数: コミットメッセージを出力
+##
+# @description Output commit message to stdout or file
+# @arg $1 string Commit message content
+# @arg $2 string Optional output file path (default: GIT_COMMIT_MSG)
+# @example
+#   output_commit_message "$commit_msg"
+#   output_commit_message "$commit_msg" ".git/COMMIT_EDITMSG"
+# @stdout Commit message (if FLAG_OUTPUT_TO_STDOUT=true)
+# @stderr Success message (if outputting to file)
+# @exitcode 0 Always succeeds
+# @see FLAG_OUTPUT_TO_STDOUT
+# @see GIT_COMMIT_MSG
 output_commit_message() {
   local commit_msg="$1"
   local output_file="${2:-$GIT_COMMIT_MSG}"
 
   if [[ "$FLAG_OUTPUT_TO_STDOUT" == true ]]; then
-    # 標準出力モード
+    # Stdout mode
     echo "$commit_msg"
   else
-    # Gitバッファーモード
+    # Git buffer mode
     rm -f "${output_file}"
     echo "${commit_msg}" > "${output_file}"
     echo "✦ Commit message written to $output_file" >&2

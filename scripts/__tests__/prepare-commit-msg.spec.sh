@@ -1,6 +1,22 @@
 #!/usr/bin/env bash
 # shellcheck shell=bash
-# ShellSpec tests for scripts/prepare-commit-msg.sh
+# src: ./scripts/__tests__/prepare-commit-msg.spec.sh
+# @(#): ShellSpec tests for prepare-commit-msg.sh
+#
+# @file prepare-commit-msg.spec.sh
+# @brief ShellSpec tests for prepare-commit-msg.sh
+# @description
+#   Test suite for the prepare-commit-msg.sh script.
+#   Tests argument parsing and commit message generation workflow.
+#
+# @author atsushifx
+# @version 1.0.0
+# @license MIT
+#
+# Copyright (c) 2025 atsushifx <https://github.com/atsushifx>
+# Released under the MIT License.
+# https://opensource.org/licenses/MIT
+#
 
 Describe 'prepare-commit-msg.sh'
   SCRIPT="./scripts/prepare-commit-msg.sh"
