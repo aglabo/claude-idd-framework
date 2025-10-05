@@ -1,6 +1,6 @@
 ---
 header:
-  - src: custom-agents.md
+  - src: 05-custom-agents.md
   - @(#): Claude カスタムエージェント記述ルール
 title: agla-logger
 description: Claude Code 向けカスタムエージェント記述統一ルール - AI エージェント向けガイド
@@ -260,70 +260,48 @@ copyright:
 
 ## 品質検証ワークフロー
 
-### 検証フェーズ
+### 検証フェーズ概要
+
+カスタムエージェントの品質検証は 3 つのフェーズで構成されます:
 
 #### Phase 1: 基本検証
 
-**ファイル存在確認**:
+エージェントファイルの存在確認とフロントマターの検出を行います。
 
-```python
-import os
-file_path = ".claude/agents/[agent-file].md"
-if not os.path.exists(file_path):
-    print("Error: Agent file not found")
-```
+検証項目:
 
-**フロントマター確認**:
+- ファイル存在確認: `.claude/agents/[agent-file].md` の存在
+- フロントマター検出: ファイルが `---` で始まるか確認
 
-```python
-with open(file_path, 'r', encoding='utf-8') as f:
-    content = f.read()
-if not content.startswith('---'):
-    print("Error: Frontmatter not found")
-```
+#### Phase 2: フロントマター検証
 
-### Phase 2: フロントマター検証
+YAML 構文の正確性と必須フィールドの存在を確認します。
 
-**YAML 構文検証**:
+検証項目:
 
-```python
-import yaml
-try:
-    frontmatter = yaml.safe_load(frontmatter_content)
-except yaml.YAMLError as e:
-    print(f"Error: Invalid YAML syntax - {e}")
-```
+- YAML 構文検証: フロントマター部分の YAML パース
+- Claude Code 必須フィールド確認: `name`, `description`
+- プロジェクト必須フィールド確認: `title`, `version`, `created`, `authors`
 
-**必須フィールド確認**:
+#### Phase 3: エージェント固有検証
 
-```python
-required_claude_fields = ['name', 'description']
-required_project_fields = ['title', 'version', 'created', 'authors']
+ag-logger プロジェクト固有の要件を検証します。
 
-for field in required_claude_fields:
-    if field not in frontmatter:
-        print(f"Error: Missing Claude Code field: {field}")
-```
+検証項目:
 
-### Phase 3: エージェント固有検証
+- model フィールド検証: `inherit` 値の確認 (ag-logger 標準)
+- 名前一貫性確認: ファイル名とエージェント名 (name フィールド) の一致
 
-**model フィールド検証** (ag-logger 標準):
+### 検証実装の詳細
 
-```python
-model_value = frontmatter.get('model', 'inherit')
-if model_value != 'inherit':
-    print(f"Warning: Model should be 'inherit' for ag-logger project, found: {model_value}")
-```
+具体的な検証コード実装は [エージェント検証実装例](../writing-examples/agent-validation-examples.md) を参照してください。
 
-**名前一貫性確認**:
+Python による検証スクリプトの例:
 
-```python
-import os
-filename = os.path.basename(file_path).replace('.md', '')
-agent_name = frontmatter.get('name', '')
-if filename != agent_name:
-    print(f"Error: Filename '{filename}' does not match agent name '{agent_name}'")
-```
+- ファイル存在・フロントマター確認
+- YAML 構文検証と必須フィールドチェック
+- ag-logger 固有制約の検証
+- 統合検証スクリプト
 
 ### 品質基準
 
@@ -637,6 +615,10 @@ feat(logger): ログレベルフィルタリング機能を追加
 - [ドキュメントテンプレート](./document-template.md): 標準テンプレート
 - [フロントマターガイド](./frontmatter-guide.md): フロントマター統一ルール
 
+### 実装例
+
+- [エージェント検証実装例](../writing-examples/agent-validation-examples.md): Python 検証コード実装
+
 ### プロジェクト開発ルール
 
 - [開発ワークフロー](../rules/01-development-workflow.md): BDD 開発プロセス
@@ -698,10 +680,10 @@ feat(logger): ログレベルフィルタリング機能を追加
 
 ## See Also
 
-- [カスタムスラッシュコマンド](custom-slash-commands.md): スラッシュコマンド記述ルール
-- [フロントマターガイド](frontmatter-guide.md): フロントマター統一ルール
-- [執筆ルール](writing-rules.md): Claude 向け執筆禁則事項
-- [ドキュメントテンプレート](document-template.md): 標準テンプレート
+- [カスタムスラッシュコマンド](04-custom-slash-commands.md): スラッシュコマンド記述ルール
+- [フロントマターガイド](02-frontmatter-guide.md): フロントマター統一ルール
+- [執筆ルール](01-writing-rules.md): Claude 向け執筆禁則事項
+- [ドキュメントテンプレート](03-document-template.md): 標準テンプレート
 - [AI Development Standards](../for-ai-dev-standards/README.md): AI 開発標準ドキュメント
 
 ---

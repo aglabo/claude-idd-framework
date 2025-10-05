@@ -1,6 +1,6 @@
 ---
 header:
-  - src: frontmatter-guide.md
+  - src: 02-frontmatter-guide.md
   - @(#): Frontmatter Guide
 title: agla-logger
 description: YAML フロントマター記入詳細ガイド
@@ -401,8 +401,8 @@ pnpm run lint:markdown      # markdownlint チェック
 
 ### See Also
 
-- [ドキュメントテンプレート](document-template.md): 基本構造とテンプレート
-- [執筆ルール](writing-rules.md): Claude 向け執筆禁則事項
+- [ドキュメントテンプレート](03-document-template.md): 基本構造とテンプレート
+- [執筆ルール](01-writing-rules.md): Claude 向け執筆禁則事項
 
 ---
 

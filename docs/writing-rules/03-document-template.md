@@ -1,6 +1,6 @@
 ---
 header:
-  - src: document-template.md
+  - src: 03-document-template.md
   - @(#): Document Template
 title: agla-logger
 description: ドキュメント作成用統一テンプレート
@@ -307,8 +307,8 @@ pnpm run check:dprint       # フォーマットチェック
 
 ### See Also
 
-- [フロントマターガイド](frontmatter-guide.md): フロントマター詳細ルール
-- [執筆ルール](writing-rules.md): Claude 向け執筆禁則事項
+- [フロントマターガイド](02-frontmatter-guide.md): フロントマター詳細ルール
+- [執筆ルール](01-writing-rules.md): Claude 向け執筆禁則事項
 
 ---
 

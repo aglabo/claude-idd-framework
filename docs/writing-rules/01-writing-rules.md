@@ -1,6 +1,6 @@
 ---
 header:
-  - src: writing-rules.md
+  - src: 01-writing-rules.md
   - @(#): Writing Rules
 title: agla-logger
 description: Claude 向け執筆禁則事項とプロジェクト固有記法ルール
@@ -222,7 +222,7 @@ authors:
 
 - textlint・markdownlint 準拠
 - Claude Code 自動補完機能との互換性確保
-- 詳細は [カスタムスラッシュコマンド](custom-slash-commands.md) 参照
+- 詳細は [カスタムスラッシュコマンド](04-custom-slash-commands.md) 参照
 
 ### 7. カスタムエージェント記述ルール
 
@@ -265,7 +265,7 @@ authors:
 
 - textlint・markdownlint 準拠
 - Claude Code エージェントシステムとの互換性確保
-- 詳細は [カスタムエージェント](custom-agents.md) 参照
+- 詳細は [カスタムエージェント](05-custom-agents.md) 参照
 
 ## Claude 特有の注意事項
 
@@ -394,64 +394,6 @@ pnpm run check:types
 '''
 ```
 
-## 文書品質チェック詳細ガイド
-
-### textlint チェック手順
-
-実行コマンド:
-
-```bash
-# 全 Markdown ファイルのチェック
-pnpm run lint:text docs/**/*.md
-
-# 特定ファイルのチェック
-pnpm run lint:text docs/writing-rules/writing-rules.md
-
-# 自動修正 (一部ルールのみ対応)
-pnpm run lint:text --fix docs/**/*.md
-```
-
-よくあるエラーと対応方法:
-
-| エラータイプ                                      | 説明               | 対応方法                 |
-| ------------------------------------------------- | ------------------ | ------------------------ |
-| `ja-technical-writing/sentence-length`            | 文章が長すぎる     | 句点で文章を分割する     |
-| `ja-technical-writing/max-comma`                  | カンマが多すぎる   | 箇条書きや文章分割で対応 |
-| `ja-spacing/ja-space-between-half-and-full-width` | 全角半角間スペース | スペースを適切に調整     |
-| `ja-technical-writing/ja-no-weak-phrase`          | 弱い表現の使用     | 断定的な表現に変更       |
-
-### markdownlint チェック手順
-
-実行コマンド:
-
-```bash
-# 全 Markdown ファイルのチェック
-pnpm run lint:markdown docs/**/*.md
-
-# 特定ファイルのチェック
-pnpm run lint:markdown docs/writing-rules/writing-rules.md
-
-# 自動修正
-pnpm run lint:markdown --fix docs/**/*.md
-```
-
-よくあるエラーと対応方法:
-
-| エラーコード | 説明                   | 対応方法                       |
-| ------------ | ---------------------- | ------------------------------ |
-| `MD001`      | 見出しレベルの順序違反 | 見出しを h1→h2→h3 の順序に修正 |
-| `MD009`      | 行末の不要なスペース   | 行末スペースを削除             |
-| `MD012`      | 複数の空行             | 空行を1行に統一                |
-| `MD022`      | 見出し前後の空行不足   | 見出し前後に空行を追加         |
-| `MD025`      | 複数の h1 見出し       | h1 は1つのみに制限             |
-
-### エラー対応の優先順位
-
-1. **Critical**: 構文エラー (MD001, MD025 など)
-2. **High**: 可読性に影響するエラー (sentence-length, max-comma など)
-3. **Medium**: スタイル統一エラー (ja-spacing など)
-4. **Low**: 細かい表現エラー (ja-no-weak-phrase など)
-
 ## textlint では検出されない注意点
 
 ### 1. 日本語と英語の混在
@@ -510,38 +452,21 @@ TypeScript 型
 
 ### レビュー時確認項目
 
-#### 🔴必須: 文書品質自動チェック
-
-文書作成・更新後は必ず以下のコマンドを実行し、エラーが出た場合は修正する。
-
-```bash
-# textlint チェック (日本語文書校正)
-pnpm run lint:text docs/**/*.md
-
-# markdownlint チェック (Markdown 構文・スタイル)
-pnpm run lint:markdown docs/**/*.md
-```
-
-チェック項目:
-
-- [ ] `pnpm run lint:text docs/**/*.md` エラー 0 件
-- [ ] `pnpm run lint:markdown docs/**/*.md` エラー 0 件
-- [ ] 修正が必要な場合は即座対応完了
-
-#### 手動確認項目
-
 - [ ] プロジェクト固有ルール準拠
 - [ ] 既存文書との一貫性
 - [ ] 読みやすさ・理解しやすさ
+- [ ] 日本語と英語の混在回避
+- [ ] カタカナ表記統一
+- [ ] 助詞の適切な使用
 
 ---
 
 ### See Also
 
-- [ドキュメントテンプレート](document-template.md) - 基本構造
-- [フロントマターガイド](frontmatter-guide.md) - メタデータ記入
-- [カスタムスラッシュコマンド](custom-slash-commands.md) - スラッシュコマンド記述ルール
-- [カスタムエージェント](custom-agents.md) - エージェント記述ルール
+- [ドキュメントテンプレート](03-document-template.md) - 基本構造
+- [フロントマターガイド](02-frontmatter-guide.md) - メタデータ記入
+- [カスタムスラッシュコマンド](04-custom-slash-commands.md) - スラッシュコマンド記述ルール
+- [カスタムエージェント](05-custom-agents.md) - エージェント記述ルール
 - [ドキュメント作成ガイドライン](README.md) - 全体概要
 - [AI Development Standards](../for-ai-dev-standards/README.md) - AI 開発標準ドキュメント
 

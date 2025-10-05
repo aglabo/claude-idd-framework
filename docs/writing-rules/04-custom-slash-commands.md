@@ -1,6 +1,6 @@
 ---
 header:
-  - src: custom-slash-commands.md
+  - src: 04-custom-slash-commands.md
   - @(#): Claude カスタムスラッシュコマンド記述ルール
 title: agla-logger
 description: Claude Code 向けカスタムスラッシュコマンド記述統一ルール - AI エージェント向けガイド
@@ -182,100 +182,57 @@ copyright:
 
 ### 基本実装パターン
 
-#### サブコマンド別 Bash スクリプト構造
+カスタムスラッシュコマンドは Bash スクリプト形式で実装します。各サブコマンドは独立したスクリプトブロックとして記述します。
 
-各サブコマンドは独立した Bash スクリプトブロックとして実装:
+基本構造:
 
-````markdown
-### Subcommand: [subcommand-name]
-
-```bash
-#!/bin/bash
-# サブコマンドの説明
-
-# 環境設定
-REPO_ROOT=$(git rev-parse --show-toplevel)
-BASE_DIR="$REPO_ROOT/[base-path]"
-
-# 処理実行
-echo "✅ 処理完了"
-```
-````
+- 環境設定: Git リポジトリルート取得、ベースディレクトリ設定
+- 処理実行: サブコマンド固有の処理
+- 結果出力: 統一されたメッセージ形式
 
 ### 標準実装パターン
 
 #### Pattern 1: 環境設定とセッション管理
 
-```bash
-#!/bin/bash
-# 環境変数設定
-setup_env() {
-  REPO_ROOT=$(git rev-parse --show-toplevel)
-  BASE_DIR="$REPO_ROOT/[base-path]"
-  SESSION_FILE="$BASE_DIR/.session"
-}
+Git リポジトリルートを基準にしたパス設定とセッション情報の保存・読み込みを行います。
 
-# セッション保存
-save_session() {
-  local key="$1"
-  local value="$2"
+主要機能:
 
-  mkdir -p "$BASE_DIR"
-  cat > "$SESSION_FILE" << EOF
-${key}=${value}
-timestamp=$(date -Iseconds 2>/dev/null || date +%Y-%m-%dT%H:%M:%S)
-EOF
-
-  echo "💾 Session saved: $key=$value"
-}
-
-# セッション読み込み
-load_session() {
-  if [ ! -f "$SESSION_FILE" ]; then
-    echo "❌ No active session found."
-    return 1
-  fi
-
-  source "$SESSION_FILE"
-  echo "📂 Session: loaded"
-  return 0
-}
-```
+- 環境変数設定: `REPO_ROOT`, `BASE_DIR`, `SESSION_FILE`
+- セッション保存: キー・バリュー形式でファイル保存
+- セッション読み込み: 保存されたセッション情報の復元
 
 #### Pattern 2: ディレクトリ構造初期化
 
-```bash
-#!/bin/bash
-# ディレクトリ構造初期化
+プロジェクト構造を一括で作成します。
 
-REPO_ROOT=$(git rev-parse --show-toplevel)
-BASE_PATH="$REPO_ROOT/[base-path]"
+主要機能:
 
-for subdir in [subdir1] [subdir2] [subdir3]; do
-  FULL_PATH="$BASE_PATH/$subdir"
-  mkdir -p "$FULL_PATH"
-  echo "✅ Created: $FULL_PATH"
-done
-
-echo ""
-echo "🎉 Structure initialized"
-```
+- 複数サブディレクトリの一括作成
+- Git リポジトリルートからの相対パス管理
+- 作成結果の視覚的フィードバック
 
 #### Pattern 3: エージェント起動
 
-```bash
-#!/bin/bash
-# エージェント起動フロー
+エージェント起動のための準備処理を行います。
 
-echo "🚀 Launching [agent-name] agent..."
-echo ""
-echo "📝 Agent will:"
-echo "  - [処理内容1]"
-echo "  - [処理内容2]"
-echo ""
+主要機能:
 
-# Note: Claude will invoke Task tool with [agent-name] agent
-```
+- セッション情報の読み込みと確認
+- エージェント起動メッセージの表示
+- Claude による Task ツール起動への橋渡し
+
+### Bash 実装の詳細
+
+具体的な Bash スクリプト実装は [コマンド実装例](../writing-examples/command-implementation-examples.md) を参照してください。
+
+提供される実装パターン:
+
+- 環境設定・セッション管理の完全実装
+- ディレクトリ構造初期化の実践例
+- エージェント起動フローの実装
+- GitHub CLI 連携パターン
+- /sdd, /idd-issue の統合実装例
 
 ### 処理制約・要件
 
@@ -284,30 +241,17 @@ echo ""
 - Shell: Bash (Git Bash on Windows 対応)
 - 依存関係: Git コマンドのみ必須
 - 実行時間: 即座完了 (数秒以内)
-- 処理複雑度: シンプルな処理 (複雑なロジック禁止)
+- 処理複雑度: シンプルな処理のみ
 
 #### エラーハンドリング
 
-基本パターン:
+統一されたメッセージ形式を使用します:
 
-```bash
-if [ -z "$REQUIRED_VAR" ]; then
-  echo "❌ Error: Required variable not set"
-  exit 1
-fi
-
-echo "✅ Success: 処理完了"
-```
-
-メッセージ形式:
-
-```bash
-- `❌ Error: [Specific error description]`
+- `❌ Error: [具体的なエラー内容]`
 - `✅ Success: [成功メッセージ]`
 - `✅ Created: [作成されたファイル/ディレクトリ]`
 - `💾 Session saved: [セッション情報]`
 - `🚀 Launching: [起動内容]`
-```
 
 ## コマンド構造標準
 
@@ -399,73 +343,48 @@ echo "✅ Success: 処理完了"
 
 ## 品質検証ワークフロー
 
-### 検証フェーズ
+### 検証フェーズ概要
+
+カスタムスラッシュコマンドの品質検証は 3 つのフェーズで構成されます。
 
 #### Phase 1: 基本検証
 
-**ファイル存在確認**:
+コマンドファイルの存在確認とフロントマターの検出を行います。
 
-```python
-import os
-file_path = ".claude/commands/[command-file].md"
-if not os.path.exists(file_path):
-    print("Error: Command file not found")
-```
+検証項目:
 
-**フロントマター確認**:
+- ファイル存在確認: `.claude/commands/[command-file].md` の存在
+- フロントマター検出: ファイルが `---` で始まるか確認
 
-```python
-with open(file_path, 'r', encoding='utf-8') as f:
-    content = f.read()
-if not content.startswith('---'):
-    print("Error: Frontmatter not found")
-```
+#### Phase 2: フロントマター検証
 
-### Phase 2: フロントマター検証
+YAML 構文の正確性と必須フィールドの存在を確認します。
 
-**YAML 構文検証**:
+検証項目:
 
-```python
-import yaml
-try:
-    frontmatter = yaml.safe_load(frontmatter_content)
-except yaml.YAMLError as e:
-    print(f"Error: Invalid YAML syntax - {e}")
-```
+- YAML 構文検証: フロントマター部分の YAML パース
+- Claude Code 必須フィールド確認: `allowed-tools`, `argument-hint`, `description`
+- プロジェクト必須フィールド確認: `title`, `version`, `created`, `authors`
 
-**必須フィールド確認**:
+#### Phase 3: 実装コード検証
 
-```python
-required_claude_fields = ['allowed-tools', 'argument-hint', 'description']
-required_project_fields = ['title', 'version', 'created', 'authors']
+Bash スクリプトや Python コードの構文正確性を確認します。
 
-for field in required_claude_fields:
-    if field not in frontmatter:
-        print(f"Error: Missing Claude Code field: {field}")
-```
+検証項目:
 
-### Phase 3: Python コード検証
+- 構文正確性確認: AST パースによる構文チェック
+- 実行可能性テスト: 基本的な実行テスト
+- エラーハンドリング確認: エラー処理の妥当性
 
-**構文正確性確認**:
+### 検証実装の詳細
 
-```python
-import ast
-try:
-    ast.parse(python_code)
-    print("Success: Python syntax valid")
-except SyntaxError as e:
-    print(f"Error: Python syntax error - {e}")
-```
+具体的な検証コード実装は [コマンド実装例](../writing-examples/command-implementation-examples.md) を参照してください。
 
-**実行テスト**:
+Python による検証スクリプトの例:
 
-```python
-try:
-    exec(python_code)
-    print("Success: Code execution completed")
-except Exception as e:
-    print(f"Error: Runtime error - {e}")
-```
+- ファイル存在・フロントマター確認
+- YAML 構文検証と必須フィールドチェック
+- Bash/Python コード構文検証
 
 ### 品質基準
 
@@ -499,224 +418,55 @@ Warnings: [N]
 
 Spec-Driven-Development (SDD) ワークフロー実装例。
 
-#### コマンドファイル: `.claude/commands/sdd.md`
+主要機能:
 
-```yaml
----
-# Claude Code 必須要素
-allowed-tools: Bash(*), Read(*), Write(*), Task(*)
-argument-hint: [subcommand] [additional args]
-description: Spec-Driven-Development主要コマンド - init/req/spec/task/code サブコマンドで要件定義から実装まで一貫した開発支援
+- プロジェクト構造初期化 (init)
+- 要件定義・設計・タスク分解フェーズ (req/spec/task)
+- BDD 実装フェーズ (code)
+- セッション管理による状態保持
 
-# 設定変数
-config:
-  base_dir: docs/.cc-sdd
-  session_file: .lastSession
-  subdirs:
-    - requirements
-    - specifications
-    - tasks
-    - implementation
+フロントマター構成:
 
-# サブコマンド定義
-subcommands:
-  init: "プロジェクト構造初期化"
-  req: "要件定義フェーズ"
-  spec: "設計仕様作成フェーズ"
-  task: "タスク分解フェーズ"
-  code: "BDD実装フェーズ"
+- allowed-tools: `Bash(*)`, `Read(*)`, `Write(*)`, `Task(*)`
+- config セクション: `base_dir`, `session_file`, `subdirs`
+- subcommands セクション: 各フェーズの定義
 
-# ユーザー管理ヘッダー
-title: sdd
-version: 2.0.0
-created: 2025-09-28
-authors:
-  - atsushifx
----
-```
-
-#### /sdd 主要サブコマンド実装
-
-**init サブコマンド**:
-
-```bash
-#!/bin/bash
-# プロジェクト構造初期化
-
-NAMESPACE_MODULE="$1"
-NAMESPACE="${NAMESPACE_MODULE%%/*}"
-MODULE="${NAMESPACE_MODULE##*/}"
-
-REPO_ROOT=$(git rev-parse --show-toplevel)
-SDD_BASE="$REPO_ROOT/docs/.cc-sdd"
-BASE_PATH="$SDD_BASE/$NAMESPACE/$MODULE"
-
-for subdir in requirements specifications tasks implementation; do
-  FULL_PATH="$BASE_PATH/$subdir"
-  mkdir -p "$FULL_PATH"
-  echo "✅ Created: $FULL_PATH"
-done
-
-# セッション保存
-SESSION_FILE="$SDD_BASE/.lastSession"
-cat > "$SESSION_FILE" << EOF
-namespace=$NAMESPACE
-module=$MODULE
-timestamp=$(date -Iseconds)
-EOF
-
-echo "🎉 SDD structure initialized for $NAMESPACE/$MODULE"
-```
-
-**code サブコマンド** (bdd-coder エージェント起動):
-
-```bash
-#!/bin/bash
-# BDD実装フェーズ
-
-REPO_ROOT=$(git rev-parse --show-toplevel)
-SESSION_FILE="$REPO_ROOT/docs/.cc-sdd/.lastSession"
-
-source "$SESSION_FILE"
-echo "📂 Session: $namespace/$module"
-echo ""
-echo "💻 BDD Implementation Phase"
-echo "🚀 Launching BDD coder agent..."
-
-# Note: Claude will invoke Task tool with bdd-coder agent
-```
-
-#### /sdd 使用例
-
-```bash
-# 1. プロジェクト初期化
-/sdd init core/logger
-
-# 2-4. 要件定義・設計・タスク分解
-/sdd req
-/sdd spec
-/sdd task
-
-# 5. BDD実装
-/sdd code
-```
+詳細な実装は [コマンド実装例](../writing-examples/command-implementation-examples.md#sdd-コマンド完全実装) を参照してください。
 
 ### 例2: /idd-issue コマンド
 
 GitHub Issue 作成・管理システム実装例。
 
-#### コマンドファイル: `.claude/commands/idd-issue.md`
+主要機能:
 
-```yaml
----
-# Claude Code 必須要素
-allowed-tools: Bash(git:*, gh:*), Read(*), Write(*), Task(*)
-argument-hint: [subcommand] [options]
-description: GitHub Issue 作成・管理システム - issue-generatorエージェントによる構造化Issue作成
+- 新規 Issue 作成 (new)
+- Issue ドラフト一覧・表示 (list/view)
+- GitHub への Push (push)
+- GitHub からの Import (load)
 
-# 設定変数
-config:
-  temp_dir: temp/issues
-  issue_types:
-    - feature
-    - bug
-    - enhancement
-    - task
+フロントマター構成:
 
-# サブコマンド定義
-subcommands:
-  new: "issue-generatorエージェントで新規Issue作成"
-  list: "保存済みIssueドラフト一覧表示"
-  view: "特定のIssueドラフト表示"
-  edit: "Issueドラフト編集"
-  load: "GitHub IssueをローカルにImport"
-  push: "ドラフトをGitHubにPush"
+- allowed-tools: `Bash(git:*, gh:*)`, `Read(*)`, `Write(*)`, `Task(*)`
+- config セクション: `temp_dir`, `issue_types`
+- subcommands セクション: 各操作の定義
 
-# ユーザー管理ヘッダー
-title: idd-issue
-version: 2.1.0
-created: 2025-09-30
-authors:
-  - atsushifx
----
-```
-
-#### /idd-issue 主要サブコマンド実装
-
-**new サブコマンド** (issue-generator エージェント起動):
-
-```bash
-#!/bin/bash
-setup_issue_env
-ensure_issues_dir
-
-echo "🚀 Launching issue-generator agent..."
-echo ""
-show_issue_types
-
-# Note: Claude will invoke issue-generator agent via Task tool
-# Agent will save session using: save_session()
-```
-
-**list サブコマンド**:
-
-```bash
-#!/bin/bash
-setup_issue_env
-
-echo "📋 Issue drafts:"
-echo "=================================================="
-
-for file in "$ISSUES_DIR"/*.md; do
-  filename=$(basename "$file" .md)
-  title=$(extract_title "$file")
-  echo "📄 $filename"
-  echo "   Title: $title"
-  echo ""
-done
-```
-
-**push サブコマンド**:
-
-```bash
-#!/bin/bash
-setup_issue_env
-find_issue_file "$1"
-
-TITLE=$(extract_title "$ISSUE_FILE")
-TEMP_BODY=$(mktemp)
-tail -n +2 "$ISSUE_FILE" > "$TEMP_BODY"
-
-if [[ "$ISSUE_NAME" =~ ^new- ]]; then
-  gh issue create --title "$TITLE" --body-file "$TEMP_BODY"
-else
-  ISSUE_NUM=$(extract_issue_number "$ISSUE_NAME")
-  gh issue edit "$ISSUE_NUM" --title "$TITLE" --body-file "$TEMP_BODY"
-fi
-
-rm -f "$TEMP_BODY"
-```
-
-#### /idd-issue 使用例
-
-```bash
-# 1. 新規Issue作成
-/idd-issue new
-
-# 2. Issue確認
-/idd-issue list
-/idd-issue view 123
-
-# 3. GitHubへプッシュ
-/idd-issue push 123
-```
+詳細な実装は [コマンド実装例](../writing-examples/command-implementation-examples.md#github-cli-連携) を参照してください。
 
 ## See Also
 
-- [カスタムエージェント](custom-agents.md): エージェント記述ルール
-- [フロントマターガイド](frontmatter-guide.md): フロントマター統一ルール
-- [執筆ルール](writing-rules.md): Claude 向け執筆禁則事項
-- [ドキュメントテンプレート](document-template.md): 標準テンプレート
+### ドキュメント作成ルール
+
+- [カスタムエージェント](05-custom-agents.md): エージェント記述ルール
+- [フロントマターガイド](02-frontmatter-guide.md): フロントマター統一ルール
+- [執筆ルール](01-writing-rules.md): Claude 向け執筆禁則事項
+- [ドキュメントテンプレート](03-document-template.md): 標準テンプレート
+
+### 実装例
+
+- [コマンド実装例](../writing-examples/command-implementation-examples.md): Bash/Python 実装パターン
+
+### プロジェクト開発ルール
+
 - [AI Development Standards](../for-ai-dev-standards/README.md): AI 開発標準ドキュメント
 
 ## 注意事項・制約
