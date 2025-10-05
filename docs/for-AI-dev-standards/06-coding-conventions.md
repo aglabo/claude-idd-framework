@@ -2,7 +2,7 @@
 header:
   - src: 06-coding-conventions.md
   - @(#): Coding Conventions and MCP Integration
-title: agla-logger
+title: claude-idd-framework
 description: AIコーディングエージェント向けコーディング規約・MCP活用パターン
 version: 1.0.0
 created: 2025-09-27

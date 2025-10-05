@@ -2,7 +2,7 @@
 header:
   - src: 08-quality-assurance.md
   - @(#): Quality Assurance System
-title: agla-logger
+title: claude-idd-framework
 description: AIコーディングエージェント用品質ゲート・自動チェックシステム
 version: 1.0.0
 created: 2025-09-27
