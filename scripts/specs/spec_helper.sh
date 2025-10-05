@@ -1,10 +1,32 @@
 #!/usr/bin/env bash
-# src: ./spec_helper.sh
-# @(#) : ShellSpec spec helper - common test utilities
+# src: ./scripts/specs/spec_helper.sh
+# @(#): ShellSpec spec helper - common test utilities
 #
-# Copyright (c) 2025 atsushifx
+# @file spec_helper.sh
+# @brief ShellSpec spec helper - common test utilities
+# @description
+#   Provides common configuration and utility functions for ShellSpec test suites.
+#
+#   Features:
+#   - Sets SHELLSPEC_PROJECT_ROOT for all tests
+#   - Provides extensible utilities for test setup/teardown
+#   - Configures ShellSpec shell mode
+#
+# @example
+#   # Include in your spec file
+#   Include scripts/specs/spec_helper.sh
+#
+#   # Use project root in tests
+#   echo "Project root: $SHELLSPEC_PROJECT_ROOT"
+#
+# @author atsushifx
+# @version 1.0.0
+# @license MIT
+#
+# Copyright (c) 2025 atsushifx <https://github.com/atsushifx>
 # Released under the MIT License.
 # https://opensource.org/licenses/MIT
+#
 
 # ShellSpec configuration
 # shellcheck shell=bash
