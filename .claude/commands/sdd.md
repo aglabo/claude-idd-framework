@@ -622,7 +622,7 @@ echo ""
 echo "📋 Agent will follow:"
 echo "  - Strict Red-Green-Refactor cycle"
 echo "  - 1 message = 1 test principle"
-echo "  - BDD hierarchy from todo.md"
+echo "  - BDD hierarchy from temp/todo.md"
 echo ""
 
 # Note: Claude will invoke Task tool with typescript-bdd-coder agent
