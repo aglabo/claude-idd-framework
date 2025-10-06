@@ -13,7 +13,8 @@
     "pnpm:": ">=10"
   },
   "scripts": {
-    "prepare": "lefthook install"
+    "prepare": "lefthook install",
+    "lint:shell": "bash -c 'shellcheck scripts/*.sh'"
   },
   "devDependencies": {
     "@commitlint/config-conventional": "^19.8.1",
