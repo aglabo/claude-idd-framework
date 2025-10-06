@@ -34,6 +34,7 @@ ionutvmi
 Iseconds
 isoformat
 istio
+kcov
 kohler
 kubernetes
 licenser
@@ -54,6 +55,7 @@ Popen
 pytest
 recov
 redhat
+reportdir
 Reselecting
 retryable
 returncode
@@ -63,6 +65,8 @@ SDD
 sdras
 sess
 shardulm
+shellspec
+SHELLSPEC
 startswith
 stringifiable
 stylelintcache
