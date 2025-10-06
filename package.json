@@ -14,7 +14,9 @@
   },
   "scripts": {
     "prepare": "lefthook install",
-    "lint:shell": "bash -c 'shellcheck scripts/*.sh'"
+    "lint:shell": "bash -c 'shellcheck scripts/*.sh'",
+    "test:shell": "bash -c 'shellspec'",
+    "test:shell:watch": "bash -c 'shellspec --watch'"
   },
   "devDependencies": {
     "@commitlint/config-conventional": "^19.8.1",
