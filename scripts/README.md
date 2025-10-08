@@ -75,8 +75,8 @@ bash .claude-idd/scripts/merge-mcp.sh
 解決方法は以下の通りです。
 
 ```bash
-# Windows (Chocolatey)
-choco install jq
+# Windows (Scoop)
+scoop install jq
 
 # macOS (Homebrew)
 brew install jq
