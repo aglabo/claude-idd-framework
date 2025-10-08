@@ -3,6 +3,7 @@ aaron
 aglogger
 alice
 autohide
+behaviour
 checkoutflow
 ciso
 cjs
@@ -19,7 +20,9 @@ endswith
 errorlens
 esm
 ESM
+exitcode
 factorypath
+FAILFAST
 findall
 formulahendry
 fzf
@@ -44,7 +47,11 @@ makedirs
 Mbps
 mhutchie
 mizchi
+MSYS
+mtimes
 mttr
+mylink
+nativestrict
 neverthrow
 numstat
 oncall
@@ -65,6 +72,7 @@ SDD
 sdras
 sess
 shardulm
+shdoc
 shellspec
 SHELLSPEC
 startswith
@@ -78,8 +86,11 @@ userid
 usernamehw
 uvx
 wifi
+winsymlinks
+xcp
 XSRV
 xsvc
+YYMMDDHHMMSS
 yzhang
 zainchen
 zenn
