@@ -36,12 +36,9 @@
 # https://opensource.org/licenses/MIT
 #
 
-set -euo pipefail
-mkdir -p temp
-
 ##
 # @description Repository root path
-readonly REPO_ROOT="$(git rev-parse --show-toplevel)"
+readonly REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || echo ".")"
 
 ##
 # @description Git commit message file path
@@ -195,22 +192,29 @@ output_commit_message() {
   fi
 }
 
-## Main
-cd "$REPO_ROOT"
+# ============================================================================
+# Main Execution (only when directly executed, not when sourced)
+# ============================================================================
 
-# オプション解析
-parse_options "$@"
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  set -euo pipefail
+  mkdir -p temp
+  cd "$REPO_ROOT"
 
-# Gitバッファーモードの場合のみ既存メッセージチェック
-if [[ "$FLAG_OUTPUT_TO_STDOUT" == false && -f "$GIT_COMMIT_MSG" ]]; then
-  if has_existing_message "$GIT_COMMIT_MSG"; then
-    echo "✦ Detected existing Git-generated commit message. Skipping Codex." >&2
-    exit 0
+  # オプション解析
+  parse_options "$@"
+
+  # Gitバッファーモードの場合のみ既存メッセージチェック
+  if [[ "$FLAG_OUTPUT_TO_STDOUT" == false && -f "$GIT_COMMIT_MSG" ]]; then
+    if has_existing_message "$GIT_COMMIT_MSG"; then
+      echo "✦ Detected existing Git-generated commit message. Skipping Codex." >&2
+      exit 0
+    fi
   fi
+
+  # コミットメッセージ生成
+  commit_msg=$( generate_commit_message )
+
+  # コミットメッセージ出力
+  output_commit_message "$commit_msg"
 fi
-
-# コミットメッセージ生成
-commit_msg=$( generate_commit_message )
-
-# コミットメッセージ出力
-output_commit_message "$commit_msg"
