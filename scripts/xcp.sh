@@ -47,8 +47,33 @@ readonly SCRIPT_DIR
 # Source logger library
 . "${SCRIPT_DIR}/libs/logger.lib.sh"
 
-# Initialize logger
-logger_init
+# ============================================================================
+# Initialization Functions
+# ============================================================================
+
+##
+# @description Initialize or reset all state variables to default values
+# @example
+#   init_variables  # Reset all variables to defaults
+# @exitcode 0 Always succeeds
+# @see logger_init
+init_variables() {
+  # Re-initialize logger
+  logger_init
+
+  # Operation mode and flags
+  OPERATION_MODE=$MODE_SKIP
+  FLAG_DRY_RUN=0
+  FLAG_RECURSIVE=0
+  FLAG_PARENTS=0
+  FLAG_DEREFERENCE=0
+  FLAG_FAIL_FAST=0
+  FLAG_ABORT_REQUESTED=0
+
+  # Command-line arguments
+  SOURCE_ARGS=()
+  DEST_ARG=""
+}
 
 # ============================================================================
 # Configuration & Global Variables
@@ -77,43 +102,50 @@ readonly MODE_BACKUP=3
 ##
 # @description Current operation mode (default: skip existing files)
 # @default MODE_SKIP
+# @see init_variables
 # shellcheck disable=SC2034
-OPERATION_MODE=$MODE_SKIP
+OPERATION_MODE=
 
 ##
 # @description Enable dry-run mode (0=disabled, 1=enabled)
 # @default 0
+# @see init_variables
 # shellcheck disable=SC2034
-FLAG_DRY_RUN=0
+FLAG_DRY_RUN=
 
 ##
 # @description Enable recursive copying (0=disabled, 1=enabled)
 # @default 0
+# @see init_variables
 # shellcheck disable=SC2034
-FLAG_RECURSIVE=0
+FLAG_RECURSIVE=
 
 ##
 # @description Create parent directories as needed (0=disabled, 1=enabled)
 # @default 0
-FLAG_PARENTS=0
+# @see init_variables
+FLAG_PARENTS=
 
 ##
 # @description Dereference symbolic links (0=disabled, 1=enabled)
 # @default 0
+# @see init_variables
 # shellcheck disable=SC2034
-FLAG_DEREFERENCE=0
+FLAG_DEREFERENCE=
 
 ##
 # @description Stop on first error (0=continue, 1=stop)
 # @default 0
+# @see init_variables
 # shellcheck disable=SC2034
-FLAG_FAIL_FAST=0
+FLAG_FAIL_FAST=
 
 ##
 # @description Indicates fail-fast abort requested after error
 # @default 0
+# @see init_variables
 # shellcheck disable=SC2034
-FLAG_ABORT_REQUESTED=0
+FLAG_ABORT_REQUESTED=
 
 ##
 # @description Script version
@@ -595,8 +627,11 @@ copy_directory_tree() {
 #   main "$@"
 # @exitcode 0 If all operations succeeded
 # @exitcode 1 If any errors occurred
-# @see parse_args check_destination_directory validate_source copy_single_item copy_directory_tree
+# @see init_variables parse_args check_destination_directory validate_source copy_single_item copy_directory_tree
 main() {
+  # Initialize variables
+  init_variables
+
   # Parse arguments
   if ! parse_args "$@"; then
     return 1
@@ -677,3 +712,194 @@ main() {
 
   return 0
 }
+
+# ============================================================================
+# Arguments & Command Variables
+# ============================================================================
+
+##
+# @description Source file/directory arguments (array)
+# @see init_variables
+declare -a SOURCE_ARGS
+
+##
+# @description Destination file/directory argument
+# @see init_variables
+DEST_ARG=
+
+# ============================================================================
+# Help & Version Functions
+# ============================================================================
+
+##
+# @description Display help message
+# @stdout Help text with usage and options
+show_help() {
+  cat <<EOF
+Usage: $SCRIPT_NAME [OPTIONS] SOURCE... DEST
+
+eXtended CoPy utility with advanced file handling capabilities.
+
+OPTIONS:
+  Operation modes:
+    -n, --noclobber    Skip existing files (default)
+    -f, --force        Overwrite existing files
+    -u, --update       Update only if source is newer
+    -b, --backup       Backup existing files before overwriting
+
+  Copy options:
+    -r, -R, --recursive   Copy directories recursively
+    -p, --parents         Create parent directories as needed
+    -L, --dereference     Dereference symbolic links
+
+  Execution control:
+    --dry-run          Show what would be done without executing
+    --fail-fast        Stop on first error
+
+  Output control:
+    -v, --verbose      Show detailed progress information
+    -q, --quiet        Show errors only
+
+  Other:
+    -h, --help         Display this help message
+    -V, --version      Display version information
+
+EXAMPLES:
+  # Copy with parent directory creation
+  $SCRIPT_NAME -p source.txt /path/to/dest/
+
+  # Dry-run mode
+  $SCRIPT_NAME --dry-run -R source/ dest/
+
+  # Verbose output with update mode
+  $SCRIPT_NAME -v -u source.txt dest.txt
+
+EOF
+}
+
+##
+# @description Display version information
+# @stdout Version and copyright information
+show_version() {
+  cat <<EOF
+$SCRIPT_NAME version $VERSION
+
+Copyright (c) 2025 atsushifx <https://github.com/atsushifx>
+Released under the MIT License.
+https://opensource.org/licenses/MIT
+EOF
+}
+
+# ============================================================================
+# Argument Parsing
+# ============================================================================
+
+##
+# @description Parse command-line arguments
+# @arg $@ All command-line arguments
+# @exitcode 0 If arguments parsed successfully
+# @exitcode 1 If arguments invalid or help/version requested
+parse_args() {
+  local -a sources=()
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -h|--help)
+        show_help
+        return 1
+        ;;
+      -V|--version)
+        show_version
+        return 1
+        ;;
+      -n|--noclobber)
+        OPERATION_MODE=$MODE_SKIP
+        shift
+        ;;
+      -f|--force)
+        OPERATION_MODE=$MODE_OVERWRITE
+        shift
+        ;;
+      -u|--update)
+        OPERATION_MODE=$MODE_UPDATE
+        shift
+        ;;
+      -b|--backup)
+        OPERATION_MODE=$MODE_BACKUP
+        shift
+        ;;
+      -r|-R|--recursive)
+        FLAG_RECURSIVE=1
+        shift
+        ;;
+      -p|--parents)
+        FLAG_PARENTS=1
+        shift
+        ;;
+      -L|--dereference)
+        FLAG_DEREFERENCE=1
+        shift
+        ;;
+      --dry-run)
+        FLAG_DRY_RUN=1
+        shift
+        ;;
+      --fail-fast)
+        FLAG_FAIL_FAST=1
+        shift
+        ;;
+      -v|--verbose)
+        logger_set_level "$LOGGER_LEVEL_VERBOSE"
+        shift
+        ;;
+      -q|--quiet)
+        logger_set_level "$LOGGER_LEVEL_ERROR"
+        shift
+        ;;
+      --)
+        shift
+        break
+        ;;
+      -*)
+        log_error "Unknown option: $1"
+        show_help >&2
+        return 1
+        ;;
+      *)
+        sources+=("$1")
+        shift
+        ;;
+    esac
+  done
+
+  # Collect remaining arguments as sources
+  while [[ $# -gt 0 ]]; do
+    sources+=("$1")
+    shift
+  done
+
+  # Validate argument count
+  if [[ ${#sources[@]} -lt 2 ]]; then
+    log_error "Missing arguments: at least SOURCE and DEST required"
+    show_help >&2
+    return 1
+  fi
+
+  # Last argument is destination
+  DEST_ARG="${sources[-1]}"
+  unset 'sources[-1]'
+
+  # Remaining arguments are sources
+  SOURCE_ARGS=("${sources[@]}")
+
+  return 0
+}
+
+# ============================================================================
+# Script Entry Point
+# ============================================================================
+
+# Execute main function only when script is run directly (not sourced)
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  main "$@"
+fi
