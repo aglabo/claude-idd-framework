@@ -1,6 +1,6 @@
 {
-  "name": "claude-idd-freamwork",
-  "_comment": "@(#) : monorepo for @aglabo/ag-logger",
+  "name": "claude-idd-framework",
+  "_comment": "@(#) : IDD/SDD framework for claude code",
   "version": "0.0.1",
   "description": "lightweight & pluggable logger for TypeScript",
   "author": "atsushifx <https://github.com/atsushifx>",
@@ -15,11 +15,16 @@
   "scripts": {
     "prepare": "lefthook install",
     "lint:shell": "bash -c 'shellcheck scripts/*.sh'",
-    "test:shell": "bash -c 'shellspec'",
-    "test:shell:watch": "bash -c 'shellspec --watch'"
+    "test:scripts": "bash -c 'shellspec'",
+    "test:scripts:watch": "bash -c 'shellspec --watch'",
+    "test:scripts:all": "concurrently \"pnpm run test:scripts:unit\" \"pnpm run test:scripts:functional\" \"pnpm run test:scripts:integration\" \"pnpm run test:scripts:e2e\"",
+    "test:scripts:unit": "bash -c 'shellspec --default-path \"scripts/__tests__/unit\"'",
+    "test:scripts:functional": "bash -c 'shellspec --default-path \"scripts/__tests__/functional\"'",
+    "test:scripts:integration": "bash -c 'shellspec --default-path \"scripts/__tests__/integration\"'",
+    "test:scripts:e2e": "bash -c 'shellspec --default-path \"scripts/__tests__/e2e\"'"
   },
   "devDependencies": {
     "@commitlint/config-conventional": "^19.8.1",
-    "@commitlint/types": "^19.8.1"
+    "concurrently": "^9.2.1"
   }
 }
