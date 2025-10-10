@@ -88,8 +88,6 @@ parse_options() {
   done
 }
 
-
-
 ##
 # @description Check if existing commit message exists in file
 # @arg $1 string Path to commit message file
@@ -146,7 +144,7 @@ generate_commit_message() {
     cat .claude/agents/commit-message-generator.md
     echo
     make_context_block
-  } | codex exec --model gpt-5-codex
+  } | codex exec --model gpt-5
   )
 
   # Extract content between === commit header === and === commit footer ===
