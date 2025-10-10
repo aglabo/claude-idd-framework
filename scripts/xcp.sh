@@ -157,92 +157,38 @@ validate_source() {
 }
 
 ##
-# @description Validate destination directory for copy operation
+# @description Validate destination directory accessibility without side effects
 # @arg $1 string Path to destination directory
 # @example
-#   FLAG_PARENTS=1
-#   if validate_dest_dir "/path/to/dest"; then
-#     echo "Destination is ready"
+#   if check_destination_directory "/path/to/dest"; then
+#     echo "Destination ready"
 #   fi
-# @exitcode 0 If directory exists+writable OR created with FLAG_PARENTS=1
-# @exitcode 1 If path empty, not writable, or creation failed
-# @see FLAG_PARENTS
+# @exitcode 0 If directory exists and is writable
+# @exitcode 1 If path is empty, not a directory, or not writable
+# @exitcode 2 If directory does not exist
 # @see log_error
-# @see log_verbose
-validate_dest_dir() {
+check_destination_directory() {
   local dest_dir="$1"
 
-  # Check for empty path
   if [[ -z "$dest_dir" ]]; then
     log_error "Destination path is empty"
     return 1
   fi
 
-  # Check if directory exists
   if [[ -d "$dest_dir" ]]; then
-    # Directory exists - verify it's writable
     if [[ -w "$dest_dir" ]]; then
       return 0
-    else
-      log_error "Destination directory not writable: $dest_dir"
-      return 1
     fi
+    log_error "Destination directory not writable: $dest_dir"
+    return 1
   fi
 
-  # Directory doesn't exist - check if FLAG_PARENTS allows creation
-  if [[ $FLAG_PARENTS -eq 1 ]]; then
-    # Attempt to create directory
-    if mkdir -p "$dest_dir" 2>/dev/null; then
-      log_verbose "Created directory: $dest_dir"
-      return 0
-    else
-      log_error "Failed to create directory: $dest_dir"
-      return 1
-    fi
+  if [[ -e "$dest_dir" ]]; then
+    log_error "Destination path exists but is not a directory: $dest_dir"
+    return 1
   fi
 
-  # Directory doesn't exist and FLAG_PARENTS disabled
-  log_error "Destination directory does not exist: $dest_dir (use -p to create)"
-  return 1
-}
-
-##
-# @description Check if path is a directory
-# @arg $1 string Path to check
-# @example
-#   if is_directory "/path/to/dir"; then
-#     echo "It's a directory"
-#   fi
-# @exitcode 0 If path is a directory
-# @exitcode 1 If path is not a directory
-is_directory() {
-  [[ -d "$1" ]]
-}
-
-##
-# @description Check if path is a regular file
-# @arg $1 string Path to check
-# @example
-#   if is_file "config.yaml"; then
-#     echo "It's a regular file"
-#   fi
-# @exitcode 0 If path is a regular file
-# @exitcode 1 If path is not a regular file
-is_file() {
-  [[ -f "$1" ]]
-}
-
-##
-# @description Check if path is a symbolic link
-# @arg $1 string Path to check
-# @example
-#   if is_symlink "mylink"; then
-#     echo "It's a symlink"
-#   fi
-# @exitcode 0 If path is a symbolic link
-# @exitcode 1 If path is not a symbolic link
-is_symlink() {
-  [[ -L "$1" ]]
+  return 2
 }
 
 # ============================================================================
@@ -250,15 +196,15 @@ is_symlink() {
 # ============================================================================
 
 ##
-# @description Ensure destination directory exists, creating it when permitted
+# @description Create destination directory with error handling
 # @arg $1 string Destination directory path
 # @example
 #   FLAG_PARENTS=1
-#   ensure_dest_dir "/path/to/dir"
-# @exitcode 0 If directory exists or creation succeeds
+#   create_destination_directory "/path/to/dir"
+# @exitcode 0 If directory already exists or creation succeeds
 # @exitcode 1 If directory cannot be created or path invalid
 # @see log_error log_verbose log_info log_dry_run
-ensure_dest_dir() {
+create_destination_directory() {
   local dest_dir="$1"
 
   if [[ -z "$dest_dir" ]]; then
@@ -289,10 +235,10 @@ ensure_dest_dir() {
   if mkdir -p "$dest_dir" 2>/dev/null; then
     log_info "Created directory: $dest_dir"
     return 0
-  else
-    log_error "Failed to create directory: $dest_dir"
-    return 1
   fi
+
+  log_error "Failed to create directory: $dest_dir"
+  return 1
 }
 
 # ============================================================================
@@ -402,61 +348,79 @@ backup_file() {
 # ============================================================================
 
 ##
-# @description Copy file with operation mode handling
+# @description Resolve destination file path for copy operation
 # @arg $1 string Source file path
 # @arg $2 string Destination path (file or directory)
-# @example
-#   OPERATION_MODE=$MODE_SKIP
-#   copy_file "/path/to/source.txt" "/path/to/dest.txt"
-# @exitcode 0 If copy succeeds or file skipped
-# @exitcode 1 If copy fails or validation fails
-# @see OPERATION_MODE MODE_SKIP MODE_OVERWRITE MODE_UPDATE MODE_BACKUP
-# @see log_info log_verbose log_error log_dry_run
-copy_file() {
+# @stdout Resolved destination file path
+# @exitcode 0 Always succeeds
+resolve_destination_path() {
   local src="$1"
   local dest="$2"
-  local dest_file
+
+  if [[ -d "$dest" ]]; then
+    printf '%s/%s\n' "$dest" "$(basename "$src")"
+    return 0
+  fi
+
+  printf '%s\n' "$dest"
+}
+
+##
+# @description Assess existing destination and decide whether to proceed with copy
+# @arg $1 string Source file path
+# @arg $2 string Destination file path
+# @exitcode 0 When copy should proceed
+# @exitcode 1 When copy should be skipped without error
+# @exitcode 2 When copy should abort due to error
+# @see OPERATION_MODE MODE_SKIP MODE_OVERWRITE MODE_UPDATE MODE_BACKUP
+assess_copy_preconditions() {
+  local src="$1"
+  local dest_file="$2"
+
+  if [[ ! -e "$dest_file" ]]; then
+    return 0
+  fi
+
+  case $OPERATION_MODE in
+    "$MODE_SKIP")
+      log_info "Skipped (exists): $dest_file"
+      return 1
+      ;;
+    "$MODE_OVERWRITE")
+      log_verbose "Overwriting: $dest_file"
+      return 0
+      ;;
+    "$MODE_UPDATE")
+      if is_newer "$src" "$dest_file"; then
+        log_verbose "Updating: $src -> $dest_file"
+        return 0
+      fi
+      log_info "Skipped (not newer): $dest_file"
+      return 1
+      ;;
+    "$MODE_BACKUP")
+      if backup_file "$dest_file"; then
+        return 0
+      fi
+      return 2
+      ;;
+    *)
+      return 0
+      ;;
+  esac
+}
+
+##
+# @description Execute cp command with configured flags
+# @arg $1 string Source file path
+# @arg $2 string Destination file path
+# @exitcode 0 If copy succeeds
+# @exitcode 1 If copy fails
+# @see log_verbose log_dry_run log_error
+perform_copy_operation() {
+  local src="$1"
+  local dest_file="$2"
   local -a cp_flags=("-p")
-
-  # Determine actual destination file path
-  if is_directory "$dest"; then
-    dest_file="${dest}/$(basename "$src")"
-  else
-    dest_file="$dest"
-  fi
-
-  # Handle existing destination file based on operation mode
-  if [[ -e "$dest_file" ]]; then
-    case $OPERATION_MODE in
-      "$MODE_SKIP")
-        log_info "Skipped (exists): $dest_file"
-        return 0
-        ;;
-      "$MODE_OVERWRITE")
-        log_verbose "Overwriting: $dest_file"
-        # Fall through to copy operation
-        ;;
-      "$MODE_UPDATE")
-        if is_newer "$src" "$dest_file"; then
-          log_verbose "Updating: $src -> $dest_file"
-          # Fall through to copy operation
-        else
-          log_info "Skipped (not newer): $dest_file"
-          return 0
-        fi
-        ;;
-      "$MODE_BACKUP")
-        if ! backup_file "$dest_file"; then
-          return 1
-        fi
-        # Fall through to copy operation
-        ;;
-      *)
-        # Other modes not implemented yet
-        return 0
-        ;;
-    esac
-  fi
 
   if [[ $FLAG_DEREFERENCE -eq 1 ]]; then
     cp_flags+=("-L")
@@ -466,8 +430,8 @@ copy_file() {
     log_verbose "Preserving symlink: $src"
   fi
 
-  # Perform actual copy operation
   log_verbose "Copying: $src -> $dest_file"
+
   if [[ $FLAG_DRY_RUN -eq 1 ]]; then
     # shellcheck disable=SC2145
     log_dry_run "cp ${cp_flags[*]} \"$src\" \"$dest_file\""
@@ -476,14 +440,48 @@ copy_file() {
 
   if cp "${cp_flags[@]}" "$src" "$dest_file" 2>/dev/null; then
     return 0
-  else
-    log_error "Failed to copy: $src -> $dest_file"
-    if [[ $FLAG_FAIL_FAST -eq 1 ]]; then
-      FLAG_ABORT_REQUESTED=1
-      log_verbose "Fail-fast requested after copy failure"
-    fi
-    return 1
   fi
+
+  log_error "Failed to copy: $src -> $dest_file"
+  if [[ $FLAG_FAIL_FAST -eq 1 ]]; then
+    FLAG_ABORT_REQUESTED=1
+    log_verbose "Fail-fast requested after copy failure"
+  fi
+  return 1
+}
+
+##
+# @description Copy single file or symlink with option-aware handling
+# @arg $1 string Source file path
+# @arg $2 string Destination path (file or directory)
+# @example
+#   OPERATION_MODE=$MODE_SKIP
+#   copy_single_item "/path/to/source.txt" "/path/to/dest.txt"
+# @exitcode 0 If copy succeeds or file skipped
+# @exitcode 1 If copy fails
+# @see assess_copy_preconditions perform_copy_operation resolve_destination_path
+copy_single_item() {
+  local src="$1"
+  local dest="$2"
+  local dest_file
+  local precondition_status
+
+  dest_file="$(resolve_destination_path "$src" "$dest")"
+
+  assess_copy_preconditions "$src" "$dest_file"
+  precondition_status=$?
+  case $precondition_status in
+    0)
+      ;;
+    1)
+      return 0
+      ;;
+    2)
+      return 1
+      ;;
+  esac
+
+  perform_copy_operation "$src" "$dest_file"
 }
 
 # ============================================================================
@@ -491,16 +489,16 @@ copy_file() {
 # ============================================================================
 
 ##
-# @description Recursively copy directory contents using copy_file
+# @description Recursively copy directory contents using copy_single_item
 # @arg $1 string Source directory path
 # @arg $2 string Destination directory path
 # @example
 #   FLAG_RECURSIVE=1
-#   copy_directory "/path/to/src" "/path/to/dest"
+#   copy_directory_tree "/path/to/src" "/path/to/dest"
 # @exitcode 0 If all entries copied successfully
 # @exitcode 1 If any copy operation fails
-# @see ensure_dest_dir copy_file
-copy_directory() {
+# @see create_destination_directory copy_single_item
+copy_directory_tree() {
   local src="$1"
   local dest="$2"
   local path rel_path dest_dir dest_file
@@ -511,14 +509,26 @@ copy_directory() {
     return 1
   fi
 
-  if ! is_directory "$src"; then
+  if [[ ! -d "$src" ]]; then
     log_error "Source is not a directory: $src"
     return 1
   fi
 
-  if ! ensure_dest_dir "$dest"; then
-    return 1
-  fi
+  local dest_check_status=0
+  check_destination_directory "$dest"
+  dest_check_status=$?
+  case $dest_check_status in
+    0)
+      ;;
+    2)
+      if ! create_destination_directory "$dest"; then
+        return 1
+      fi
+      ;;
+    *)
+      return 1
+      ;;
+  esac
 
   if [[ $FLAG_DEREFERENCE -eq 1 ]]; then
     find_flags+=("-L")
@@ -539,7 +549,7 @@ copy_directory() {
     rel_path="${path#"$src"/}"
     dest_dir="${dest}/${rel_path}"
 
-    if ! ensure_dest_dir "$dest_dir"; then
+    if ! create_destination_directory "$dest_dir"; then
       status=1
       if [[ $FLAG_FAIL_FAST -eq 1 ]]; then
         return 1
@@ -553,7 +563,7 @@ copy_directory() {
     dest_dir="$(dirname "$dest_file")"
 
     if [[ $FLAG_DRY_RUN -eq 0 && ! -d "$dest_dir" ]]; then
-      if ! ensure_dest_dir "$dest_dir"; then
+      if ! create_destination_directory "$dest_dir"; then
         status=1
         if [[ $FLAG_FAIL_FAST -eq 1 ]]; then
           return 1
@@ -562,7 +572,7 @@ copy_directory() {
       fi
     fi
 
-    if ! copy_file "$path" "$dest_file"; then
+    if ! copy_single_item "$path" "$dest_file"; then
       status=1
       if [[ $FLAG_FAIL_FAST -eq 1 && $FLAG_ABORT_REQUESTED -eq 1 ]]; then
         log_verbose "Aborting directory copy due to fail-fast"
@@ -585,7 +595,7 @@ copy_directory() {
 #   main "$@"
 # @exitcode 0 If all operations succeeded
 # @exitcode 1 If any errors occurred
-# @see parse_args validate_dest_dir validate_source copy_file copy_directory
+# @see parse_args check_destination_directory validate_source copy_single_item copy_directory_tree
 main() {
   # Parse arguments
   if ! parse_args "$@"; then
@@ -594,20 +604,27 @@ main() {
 
   # Validate destination
   local dest_dir
-  if is_directory "$DEST_ARG"; then
+  if [[ -d "$DEST_ARG" ]]; then
     dest_dir="$DEST_ARG"
   else
     dest_dir="$(dirname "$DEST_ARG")"
   fi
 
-  if ! validate_dest_dir "$dest_dir"; then
-    return 1
-  fi
-
-  # Ensure destination directory
-  if ! ensure_dest_dir "$dest_dir"; then
-    return 1
-  fi
+  local dest_check_status=0
+  check_destination_directory "$dest_dir"
+  dest_check_status=$?
+  case $dest_check_status in
+    0)
+      ;;
+    2)
+      if ! create_destination_directory "$dest_dir"; then
+        return 1
+      fi
+      ;;
+    *)
+      return 1
+      ;;
+  esac
 
   # Process each source
   local src
@@ -619,7 +636,7 @@ main() {
       continue
     fi
 
-    if is_directory "$src"; then
+    if [[ -d "$src" ]]; then
       if [[ $FLAG_RECURSIVE -eq 0 ]]; then
         log_error "Skipping directory (use -r): $src"
         if [[ $FLAG_FAIL_FAST -eq 1 ]]; then
@@ -630,19 +647,19 @@ main() {
 
       # Determine destination path for directory
       local dest_path
-      if is_directory "$DEST_ARG"; then
+      if [[ -d "$DEST_ARG" ]]; then
         dest_path="$DEST_ARG/$(basename "$src")"
       else
         dest_path="$DEST_ARG"
       fi
 
-      if ! copy_directory "$src" "$dest_path"; then
+      if ! copy_directory_tree "$src" "$dest_path"; then
         if [[ $FLAG_FAIL_FAST -eq 1 ]]; then
           return 1
         fi
       fi
     else
-      if ! copy_file "$src" "$DEST_ARG"; then
+      if ! copy_single_item "$src" "$DEST_ARG"; then
         if [[ $FLAG_FAIL_FAST -eq 1 ]]; then
           return 1
         fi
