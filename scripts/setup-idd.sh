@@ -1,4 +1,57 @@
 #!/usr/bin/env bash
+# src: ./scripts/setup-idd.sh
+# @(#): Setup script for claude-idd-framework
+#
+# @file setup-idd.sh
+# @brief Setup script for claude-idd-framework
+# @description
+#   Automated setup script that configures the claude-idd-framework in a project.
+#   Performs the following operations:
+#   - Verifies jq installation (required for JSON processing)
+#   - Merges .mcp.json configuration with existing settings
+#   - Copies GitHub Issue templates to .github/ISSUE_TEMPLATE/
+#   - Copies GitHub Workflows (ci-secrets-scan.yaml)
+#   - Copies security configuration files (gitleaks.toml)
+#
+#   The script is idempotent and safely skips existing files.
+#
+# @example
+#   # Run setup from repository root
+#   bash scripts/setup-idd.sh
+#
+#   # Verify setup
+#   jq '.mcpServers | keys' .mcp.json
+#
+# @exitcode 0 Success
+# @exitcode 1 Error during setup
+#
+# @author atsushifx
+# @version 1.0.0
+# @license MIT
+#
+# Copyright (c) 2025 atsushifx <https://github.com/atsushifx>
+# Released under the MIT License.
+# https://opensource.org/licenses/MIT
+#
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+echo "📦 Setting up claude-idd-framework..."
+echo ""
+
+# Change to repository root
+cd "$REPO_ROOT" || exit 1
+
+# 1. Check jq installation
+echo "🔍 Checking jq installation..."
+if ! command -v jq &> /dev/null; then
+  echo "❌ jq not found. Please install jq."
+  echo ""
+  echo "Installation instructions:"
+  echo "  - Windows: scoop install jq"
 # setup-idd.sh - Setup script for claude-idd-framework
 set -euo pipefail
 

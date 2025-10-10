@@ -1,3 +1,9 @@
+<!--
+ Copyright (c) 2025 Furukawa Atsushi <atsushifx@gmail.com>
+
+ This software is released under the MIT License.
+ https://opensource.org/licenses/MIT
+-->
 ---
 header:
   - src: README.md
@@ -75,8 +81,8 @@ bash .claude-idd/scripts/merge-mcp.sh
 解決方法は以下の通りです。
 
 ```bash
-# Windows (Chocolatey)
-choco install jq
+# Windows (Scoop)
+scoop install jq
 
 # macOS (Homebrew)
 brew install jq
