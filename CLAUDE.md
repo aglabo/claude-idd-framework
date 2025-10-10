@@ -4,9 +4,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Overview
 
-**claude-idd-framework** is a documentation-based development framework for AI coding agents (Claude Code). It provides unified development standards, writing rules, custom slash commands, and custom agents to enhance AI-assisted development workflows.
+**claude-idd-framework** is a comprehensive development framework for AI coding agents (Claude Code). It provides unified development standards, writing rules, custom slash commands, and custom agents to enhance AI-assisted development workflows.
 
-This repository focuses on documentation and configuration rather than traditional code. The primary purpose is to establish consistent development practices across projects using Claude Code.
+This repository contains:
+
+1. **Documentation**: Development standards, writing rules, and quality guidelines
+2. **Custom Tools**: Slash commands and agents for Claude Code
+3. **Shell Script Implementation**: Practical utilities developed using BDD methodology
+
+The primary purpose is to establish consistent development practices across projects using Claude Code, with `scripts/xcp.sh` serving as a reference implementation of BDD-driven shell script development.
 
 ## Repository Structure
 
@@ -46,6 +52,18 @@ docs/
     ├── 09-document-quality-assurance.md   # Document quality criteria
     ├── 10-templates-and-standards.md      # Source code templates & JSDoc rules
     └── 11-bdd-implementation-details.md   # atsushifx-style BDD implementation details
+
+scripts/                  # Shell script implementations
+├── xcp.sh                        # eXtended CoPy utility (main project)
+├── libs/logger.lib.sh           # Logging library with error tracking
+├── merge-mcp.sh                 # MCP configuration merge utility
+├── prepare-commit-msg.sh        # Git hook for commit message generation
+├── setup-idd.sh                 # IDD framework setup script
+├── __tests__/                   # shellspec test files
+│   ├── xcp.spec.sh              # BDD tests for xcp.sh
+│   ├── logger.lib.spec.sh       # Tests for logger library
+│   └── prepare-commit-msg.spec.sh  # Tests for commit hook
+└── specs/spec_helper.sh         # shellspec test helpers
 
 configs/                  # Configuration files (reference only)
 ```
@@ -270,6 +288,69 @@ Use `/idd-commit-message` or the `commit-message-generator` agent to generate co
 2. Create file in `.claude/agents/[name].md`
 3. Include frontmatter with `name`, `description`, `tools`, `model: inherit`
 4. Structure: Agent Overview → Activation Conditions → Core Functionality → Integration Guidelines
+
+### Shell Script Development with BDD
+
+For developing shell scripts (like `xcp.sh`), use the **SDD (Spec-Driven Development) workflow**:
+
+#### Initial Setup
+
+```bash
+# 1. Initialize SDD session
+/sdd init [namespace]/[module]
+# Example: /sdd init scripts/xcp
+
+# 2. Create requirements document
+/sdd req
+# Write functional requirements in docs/.cc-sdd/[namespace]/[module]/requirements/
+
+# 3. Create specifications
+/sdd spec
+# Generate detailed specifications from requirements
+
+# 4. Break down into tasks
+/sdd tasks
+# Generate task breakdown (T1-T10) with BDD verification items
+```
+
+#### Implementation Cycle
+
+```bash
+# 5. Implement code following BDD
+/sdd coding [task-id]
+# Example: /sdd coding T7-1
+# Follows strict Red-Green-Refactor:
+# - Write one failing test (RED)
+# - Implement minimal code to pass (GREEN)
+# - Refactor while keeping tests green (REFACTOR)
+
+# 6. Commit completed work
+/sdd commit
+# Generates Conventional Commits message from changes
+```
+
+#### Key Principles
+
+- **Test-first**: Write shellspec tests before implementation
+- **BDD hierarchy**: Given/When/Then structure with tags ([正常], [異常], [エッジケース])
+- **Logger integration**: Use `scripts/libs/logger.lib.sh` for consistent logging
+- **Quality gates**: Run `shellcheck` and `shellspec` before committing
+- **MCP tools**: Use serena-mcp/lsmcp to understand existing code patterns
+
+#### Reference Implementation: xcp.sh
+
+- **Project**: `scripts/xcp.sh` (eXtended CoPy utility)
+- **Status**: ✅ **COMPLETE** (T1-T10 all implemented and tested)
+- **Test Coverage**: 148 examples, 100% pass rate (6 skipped on Windows)
+- **Lines of Code**: 662 lines (implementation), 1687 lines (tests)
+- **Features**:
+  - Multiple operation modes (skip, overwrite, update, backup)
+  - Dry-run mode for safe testing
+  - Recursive directory copying with symlink handling
+  - Error tracking and fail-fast mode
+  - Comprehensive logging (quiet/verbose modes)
+- **Reference**: See `docs/.cc-sdd/scripts/xcp/` for requirements, specs, and tasks
+- **Production Ready**: Fully documented with shdoc headers, ready for use
 
 ## Troubleshooting
 

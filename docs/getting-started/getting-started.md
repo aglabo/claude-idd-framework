@@ -56,13 +56,13 @@ Gitサブモジュールとして組み込むことで、以下の利点が得�
 
 以下のツールとサービスが必要です。
 
-| 項目 | 要件 | 確認方法 |
-|------|------|---------|
-| Git | 2.13以降(サブモジュール機能) | `git --version` |
-| jq | 1.5以降(JSON処理) | `jq --version` |
-| Node.js | 20以降 | `node --version` |
-| pnpm | 10以降 | `pnpm --version` |
-| Claude Code | インストール済み | `/help`で確認 |
+| 項目        | 要件                         | 確認方法          |
+| ----------- | ---------------------------- | ----------------- |
+| Git         | 2.13以降(サブモジュール機能) | `git --version`   |
+| jq          | 1.5以降(JSON処理)            | `jq --version`    |
+| Node.js     | 20以降                       | `node --version`  |
+| pnpm        | 10以降                       | `pnpm --version`  |
+| Claude Code | インストール済み             | `/help`で確認     |
 | MCPサーバー | lsmcp, serena-mcp, codex-mcp | `.mcp.json`で確認 |
 
 jqのインストールは以下のコマンドで実行できます。
