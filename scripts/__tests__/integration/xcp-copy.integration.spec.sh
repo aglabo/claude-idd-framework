@@ -36,7 +36,7 @@ Describe 'xcp.sh - Integration tests'
       logger_init
     }
 
-    BeforeEach 'setup_copy_file'
+    BeforeEach 'setup_copy_single_item'
 
     Describe 'When: Handling existing files with default MODE_SKIP'
       It 'Then: [正常] - 既存ファイルはデフォルトでスキップし INFO ログに結果を記録する'
@@ -45,16 +45,14 @@ Describe 'xcp.sh - Integration tests'
         dest_file=$(mktemp)
         echo "source content" > "$src_file"
         echo "dest content" > "$dest_file"
-        original_content=$(cat "$dest_file")
         OPERATION_MODE=$MODE_SKIP
 
-        # Act: Call copy_file with existing destination
-        When call copy_file "$src_file" "$dest_file"
+        # Act: Call copy_single_item with existing destination
+        When call copy_single_item "$src_file" "$dest_file"
 
         # Assert: Destination should remain unchanged
         The status should be success
-        new_content=$(cat "$dest_file")
-        The variable new_content should equal "$original_content"
+        The contents of file "$dest_file" should equal "dest content"
         The output should include "[INFO] Skipped (exists)"
 
         # Cleanup
@@ -72,13 +70,12 @@ Describe 'xcp.sh - Integration tests'
         echo "dest content" > "$dest_file"
         OPERATION_MODE=$MODE_OVERWRITE
 
-        # Act: Call copy_file with existing destination
-        When call copy_file "$src_file" "$dest_file"
+        # Act: Call copy_single_item with existing destination
+        When call copy_single_item "$src_file" "$dest_file"
 
         # Assert: Destination should be updated with source content and log overwrite message
         The status should be success
-        new_content=$(cat "$dest_file")
-        The variable new_content should equal "source content"
+        The contents of file "$dest_file" should equal "source content"
         The output should include "[VERBOSE] Overwriting"
 
         # Cleanup
@@ -98,13 +95,12 @@ Describe 'xcp.sh - Integration tests'
         FLAG_VERBOSE=1
         OPERATION_MODE=$MODE_UPDATE
 
-        # Act: Call copy_file with source newer than destination
-        When call copy_file "$src_file" "$dest_file"
+        # Act: Call copy_single_item with source newer than destination
+        When call copy_single_item "$src_file" "$dest_file"
 
         # Assert: Destination should be updated with newer source content
         The status should be success
-        new_content=$(cat "$dest_file")
-        The variable new_content should equal "new content"
+        The contents of file "$dest_file" should equal "new content"
         The output should include "[VERBOSE] Updating"
 
         # Cleanup
@@ -120,15 +116,13 @@ Describe 'xcp.sh - Integration tests'
         dest_file=$(mktemp)
         echo "existing content" > "$dest_file"
         OPERATION_MODE=$MODE_UPDATE
-        original_content=$(cat "$dest_file")
 
-        # Act: Call copy_file with older source than destination
-        When call copy_file "$src_file" "$dest_file"
+        # Act: Call copy_single_item with older source than destination
+        When call copy_single_item "$src_file" "$dest_file"
 
         # Assert: Destination should remain unchanged and skip log emitted
         The status should be success
-        new_content=$(cat "$dest_file")
-        The variable new_content should equal "$original_content"
+        The contents of file "$dest_file" should equal "existing content"
         The output should include "[INFO] Skipped (not newer)"
 
         # Cleanup
@@ -144,11 +138,10 @@ Describe 'xcp.sh - Integration tests'
         dest_file=$(mktemp)
         echo "source content" > "$src_file"
         echo "existing content" > "$dest_file"
-        original_content=$(cat "$dest_file")
         OPERATION_MODE=$MODE_BACKUP
 
-        # Act: Call copy_file with backup mode
-        When call copy_file "$src_file" "$dest_file"
+        # Act: Call copy_single_item with backup mode
+        When call copy_single_item "$src_file" "$dest_file"
 
         # Assert: Backup is created before copy and both files exist
         The status should be success
@@ -157,11 +150,9 @@ Describe 'xcp.sh - Integration tests'
         backup_count=${#backup_files[@]}
         The variable backup_count should equal "1"
         The path "$backup_path" should be file
-        backup_content=$(cat "$backup_path")
-        The variable backup_content should equal "$original_content"
+        The contents of file "$backup_path" should equal "existing content"
         The path "$dest_file" should be file
-        new_content=$(cat "$dest_file")
-        The variable new_content should equal "source content"
+        The contents of file "$dest_file" should equal "source content"
         The output should include "[VERBOSE] Backing up:"
         The output should include "[INFO] Backed up:"
         The output should include "[VERBOSE] Copying:"
@@ -190,7 +181,7 @@ Describe 'xcp.sh - Integration tests'
         OPERATION_MODE=$MODE_OVERWRITE
 
         # Act: Overwrite existing destination file
-        When call copy_file "$src_file" "$dest_file"
+        When call copy_single_item "$src_file" "$dest_file"
 
         # Assert: Destination permissions should match source permissions
         The status should be success
@@ -215,7 +206,7 @@ Describe 'xcp.sh - Integration tests'
         OPERATION_MODE=$MODE_OVERWRITE
 
         # Act: Overwrite existing destination file
-        When call copy_file "$src_file" "$dest_file"
+        When call copy_single_item "$src_file" "$dest_file"
 
         # Assert: Destination timestamp should match source timestamp
         The status should be success
@@ -290,8 +281,7 @@ Describe 'xcp.sh - Integration tests'
         The status should be success
         dest_file="$dest_dir/$(basename "$src_file")"
         The path "$dest_file" should be file
-        dest_content=$(cat "$dest_file")
-        The variable dest_content should equal "directory copy"
+        The contents of file "$dest_file" should equal "directory copy"
 
         rm -f "$src_file"
         rm -rf "$dest_dir"
@@ -313,7 +303,7 @@ Describe 'xcp.sh - Integration tests'
         FLAG_DEREFERENCE=1
 
         # Act: Copy symlink with dereference enabled
-        When call copy_file "$src_link" "$dest_dir"
+        When call copy_single_item "$src_link" "$dest_dir"
 
         # Assert: Destination should be a regular file with target content
         The status should be success
@@ -321,8 +311,7 @@ Describe 'xcp.sh - Integration tests'
         The path "$dest_file" should be file
         file_type=$(command stat -c %F "$dest_file" 2>/dev/null || command stat -f %HT "$dest_file" 2>/dev/null)
         The variable file_type should equal "regular file"
-        dest_content=$(cat "$dest_file")
-        The variable dest_content should equal "symlink target content"
+        The contents of file "$dest_file" should equal "symlink target content"
         The output should include "[VERBOSE] Dereferencing symlink"
 
         # Cleanup
@@ -342,9 +331,9 @@ Describe 'xcp.sh - Integration tests'
         FLAG_ABORT_REQUESTED=0
 
         # Act: Attempt to copy missing source
-        When call copy_file "$missing_src" "$dest_dir"
+        When call copy_single_item "$missing_src" "$dest_dir"
 
-        # Assert: copy_file should fail and request abort
+        # Assert: copy_single_item should fail and request abort
         The status should be failure
         The error should include "Failed to copy"
         The variable FLAG_ABORT_REQUESTED should equal "1"
@@ -363,9 +352,9 @@ Describe 'xcp.sh - Integration tests'
         FLAG_ABORT_REQUESTED=0
 
         # Act: Attempt to copy missing source
-        When call copy_file "$missing_src" "$dest_dir"
+        When call copy_single_item "$missing_src" "$dest_dir"
 
-        # Assert: copy_file should fail but not request abort
+        # Assert: copy_single_item should fail but not request abort
         The status should be failure
         The error should include "Failed to copy"
         The variable FLAG_ABORT_REQUESTED should equal "0"
@@ -390,15 +379,15 @@ Describe 'xcp.sh - Integration tests'
       FLAG_ABORT_REQUESTED=0
     }
 
-    restore_copy_file() {
-      if declare -f original_copy_file >/dev/null; then
-        eval "$(declare -f original_copy_file | sed '1s/original_copy_file/copy_file/')"
-        unset -f original_copy_file
+    restore_copy_single_item() {
+      if declare -f original_copy_single_item >/dev/null; then
+        eval "$(declare -f original_copy_single_item | sed '1s/original_copy_single_item/copy_single_item/')"
+        unset -f original_copy_single_item
       fi
     }
 
-    BeforeEach 'setup_copy_directory'
-    AfterEach 'restore_copy_file'
+    BeforeEach 'setup_copy_directory_tree'
+    AfterEach 'restore_copy_single_item'
 
     Describe 'When: Recursively copying directories'
       It 'Then: [正常] - サブディレクトリを mkdir -p しながら処理する'
@@ -409,7 +398,7 @@ Describe 'xcp.sh - Integration tests'
         FLAG_PARENTS=1
         FLAG_VERBOSE=1
 
-        When call copy_directory "$src_dir" "$dest_dir"
+        When call copy_directory_tree "$src_dir" "$dest_dir"
 
         The status should be success
         The path "$dest_dir/sub1/sub2" should be directory
@@ -420,7 +409,7 @@ Describe 'xcp.sh - Integration tests'
         rm -rf "$src_dir" "$dest_dir"
       End
 
-      It 'Then: [正常] - ネストしたファイルを copy_file へ委譲し内容を保持する'
+      It 'Then: [正常] - ネストしたファイルを copy_single_item へ委譲し内容を保持する'
         src_dir=$(mktemp -d)
         dest_dir=$(mktemp -d)
         mkdir -p "$src_dir/sub1/sub2"
@@ -428,17 +417,17 @@ Describe 'xcp.sh - Integration tests'
         echo "beta" > "$src_dir/sub1/sub2/b.txt"
         FLAG_PARENTS=1
 
-        eval "$(declare -f copy_file | sed '1s/copy_file/original_copy_file/')"
-        copy_file_call_count=0
-        copy_file() {
-          copy_file_call_count=$((copy_file_call_count + 1))
-          original_copy_file "$1" "$2"
+        eval "$(declare -f copy_single_item | sed '1s/copy_single_item/original_copy_single_item/')"
+        copy_single_item_call_count=0
+        copy_single_item() {
+          copy_single_item_call_count=$((copy_single_item_call_count + 1))
+          original_copy_single_item "$1" "$2"
         }
 
-        When call copy_directory "$src_dir" "$dest_dir"
+        When call copy_directory_tree "$src_dir" "$dest_dir"
 
         The status should be success
-        The variable copy_file_call_count should equal "2"
+        The variable copy_single_item_call_count should equal "2"
         The contents of file "$dest_dir/sub1/sub2/a.txt" should equal "alpha"
         The contents of file "$dest_dir/sub1/sub2/b.txt" should equal "beta"
         The output should match pattern "*[[]INFO[]] Created directory:*"
@@ -459,10 +448,10 @@ Describe 'xcp.sh - Integration tests'
         FLAG_FAIL_FAST=1
         FLAG_ABORT_REQUESTED=0
 
-        eval "$(declare -f copy_file | sed '1s/copy_file/original_copy_file/')"
-        copy_file_fail_count=0
-        copy_file() {
-          copy_file_fail_count=$((copy_file_fail_count + 1))
+        eval "$(declare -f copy_single_item | sed '1s/copy_single_item/original_copy_single_item/')"
+        copy_single_item_fail_count=0
+        copy_single_item() {
+          copy_single_item_fail_count=$((copy_single_item_fail_count + 1))
           log_error "Simulated copy failure: $1"
           if [[ $FLAG_FAIL_FAST -eq 1 ]]; then
             FLAG_ABORT_REQUESTED=1
@@ -470,10 +459,10 @@ Describe 'xcp.sh - Integration tests'
           return 1
         }
 
-        When call copy_directory "$src_dir" "$dest_dir"
+        When call copy_directory_tree "$src_dir" "$dest_dir"
 
         The status should be failure
-        The variable copy_file_fail_count should equal "1"
+        The variable copy_single_item_fail_count should equal "1"
         The result of function logger_get_error_count should equal 1
         The variable FLAG_ABORT_REQUESTED should equal "1"
 
@@ -504,7 +493,7 @@ Describe 'xcp.sh - Integration tests'
         FLAG_DEREFERENCE=0  # Preserve symlinks
 
         # Act: Copy directory with symlink
-        When call copy_directory "$src_dir" "$dest_dir"
+        When call copy_directory_tree "$src_dir" "$dest_dir"
 
         # Assert: Symlink should be preserved (not dereferenced)
         The status should be success
@@ -544,7 +533,7 @@ Describe 'xcp.sh - Integration tests'
         FLAG_DEREFERENCE=1  # Dereference symlinks
 
         # Act: Copy directory with symlink dereferencing enabled
-        When call copy_directory "$src_dir" "$dest_dir"
+        When call copy_directory_tree "$src_dir" "$dest_dir"
 
         # Assert: Symlink should be dereferenced (copied as regular file)
         The status should be success
@@ -560,8 +549,7 @@ Describe 'xcp.sh - Integration tests'
         The variable symlink_dereferenced should equal "1"
 
         # Verify content is copied
-        dest_content=$(cat "$dest_link")
-        The variable dest_content should equal "dereferenced content"
+        The contents of file "$dest_link" should equal "dereferenced content"
 
         # Cleanup
         FLAG_PARENTS=0
@@ -595,7 +583,7 @@ Describe 'xcp.sh - Integration tests'
         FLAG_DEREFERENCE=0
 
         # Act: Copy directory in dry-run mode
-        When call copy_directory "$src_dir" "$dest_dir"
+        When call copy_directory_tree "$src_dir" "$dest_dir"
 
         # Assert: Should output dry-run logs without actually copying
         The status should be success
