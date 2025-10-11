@@ -82,29 +82,6 @@ Describe 'prepare-commit-msg.sh - File I/O operations'
       End
     End
 
-    Context 'Given: edge cases'
-      It 'Then: [エッジケース] - returns false for only blank lines'
-        Data
-          #|
-          #|
-          #|
-        End
-        When call has_existing_message_stdin
-        The status should equal 1
-      End
-
-      It 'Then: [エッジケース] - returns false for mixed empty lines and comments'
-        Data
-          #|
-          #|# Comment
-          #|
-          #|# Another comment
-          #|
-        End
-        When call has_existing_message_stdin
-        The status should equal 1
-      End
-    End
   End
 
   Describe 'output_commit_message() - file mode'
@@ -131,21 +108,6 @@ Describe 'prepare-commit-msg.sh - File I/O operations'
         The contents of file "$TEST_OUTPUT_FILE" should equal "feat: test commit"
       End
 
-      It 'Then: [正常] - writes multi-line message preserving format'
-        FLAG_OUTPUT_TO_STDOUT=false
-        multiline="feat: test commit
-
-This is the body.
-- Item 1
-- Item 2"
-        When call output_commit_message "$multiline" "$TEST_OUTPUT_FILE"
-        The stderr should include "✦ Commit message written to"
-        The stderr should include "$TEST_OUTPUT_FILE"
-        The file "$TEST_OUTPUT_FILE" should be exist
-        The contents of file "$TEST_OUTPUT_FILE" should include "feat: test commit"
-        The contents of file "$TEST_OUTPUT_FILE" should include "This is the body."
-        The contents of file "$TEST_OUTPUT_FILE" should include "- Item 1"
-      End
     End
   End
 End

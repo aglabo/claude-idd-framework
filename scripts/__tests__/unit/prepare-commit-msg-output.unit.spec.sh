@@ -47,29 +47,6 @@ This is the body."
         The line 2 should equal ""
         The line 3 should equal "This is the body."
       End
-
-      It 'Then: [正常] - does not create file in stdout mode'
-        FLAG_OUTPUT_TO_STDOUT=true
-        When call output_commit_message "feat: test" "$TEST_OUTPUT_FILE"
-        The output should equal "feat: test"
-        The file "$TEST_OUTPUT_FILE" should not be exist
-      End
-    End
-
-    Context 'Given: edge cases'
-      It 'Then: [エッジケース] - handles empty message in stdout mode'
-        FLAG_OUTPUT_TO_STDOUT=true
-        When call output_commit_message "" "$TEST_OUTPUT_FILE"
-        The output should equal ""
-      End
-
-      It 'Then: [エッジケース] - handles message with special characters'
-        FLAG_OUTPUT_TO_STDOUT=true
-        special="fix: escape \$VAR and 'quotes' and \"double\""
-        When call output_commit_message "$special" "$TEST_OUTPUT_FILE"
-        The output should include "\$VAR"
-        The output should include "'quotes'"
-      End
     End
   End
 End

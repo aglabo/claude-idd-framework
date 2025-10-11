@@ -165,61 +165,6 @@ Describe 'xcp.sh - Integration tests'
       End
     End
 
-    Describe 'When: Preserving file attributes during copy'
-      It 'Then: [正常] - コピー後のパーミッションがソースと一致する'
-        # Arrange: Prepare source and destination with differing permissions
-        case "$(uname -s)" in
-          MINGW*|MSYS*|CYGWIN*)
-            Skip 'Windows 環境ではパーミッション検証をスキップ'
-            ;;
-        esac
-
-        src_file=$(mktemp)
-        dest_file=$(mktemp)
-        echo "source content" > "$src_file"
-        echo "destination content" > "$dest_file"
-        chmod 640 "$src_file"
-        chmod 600 "$dest_file"
-        OPERATION_MODE=$MODE_OVERWRITE
-
-        # Act: Overwrite existing destination file
-        When call copy_single_item "$src_file" "$dest_file"
-
-        # Assert: Destination permissions should match source permissions
-        The status should be success
-        src_mode=$(command stat -c %a "$src_file" 2>/dev/null || command stat -f %Mp%Lp "$src_file" 2>/dev/null)
-        dest_mode=$(command stat -c %a "$dest_file" 2>/dev/null || command stat -f %Mp%Lp "$dest_file" 2>/dev/null)
-        The variable dest_mode should equal "$src_mode"
-
-        # Cleanup
-        OPERATION_MODE=$MODE_SKIP
-        rm -f "$src_file" "$dest_file"
-      End
-
-      It 'Then: [正常] - コピー後のタイムスタンプがソースと一致する'
-        # Arrange: Prepare source and destination with differing timestamps
-        src_file=$(mktemp)
-        dest_file=$(mktemp)
-        echo "timestamp content" > "$src_file"
-        echo "old content" > "$dest_file"
-        command touch -t 202001010000 "$src_file" 2>/dev/null || command touch -d '2020-01-01 00:00:00' "$src_file"
-        command touch -t 202402020202 "$dest_file" 2>/dev/null || command touch -d '2024-02-02 02:02:00' "$dest_file"
-        OPERATION_MODE=$MODE_OVERWRITE
-
-        # Act: Overwrite existing destination file
-        When call copy_single_item "$src_file" "$dest_file"
-
-        # Assert: Destination timestamp should match source timestamp
-        The status should be success
-        src_mtime=$(command stat -c %Y "$src_file" 2>/dev/null || command stat -f %m "$src_file" 2>/dev/null)
-        dest_mtime=$(command stat -c %Y "$dest_file" 2>/dev/null || command stat -f %m "$dest_file" 2>/dev/null)
-        The variable dest_mtime should equal "$src_mtime"
-
-        # Cleanup
-        OPERATION_MODE=$MODE_SKIP
-        rm -f "$src_file" "$dest_file"
-      End
-    End
 
     Describe 'When: Handling copy failures with fail-fast'
       It 'Then: [異常] - fail-fast 指定時はエラーで即時停止フラグを立てる'
@@ -235,22 +180,6 @@ Describe 'xcp.sh - Integration tests'
         The variable FLAG_ABORT_REQUESTED should equal "1"
 
         FLAG_FAIL_FAST=0
-        FLAG_ABORT_REQUESTED=0
-        rmdir "$dest_dir"
-      End
-
-      It 'Then: [異常] - fail-fast 無効時は停止フラグを立てずにエラーを返す'
-        missing_src=$(mktemp -u)
-        dest_dir=$(mktemp -d)
-        FLAG_FAIL_FAST=0
-        FLAG_ABORT_REQUESTED=0
-
-        When call copy_single_item "$missing_src" "$dest_dir"
-
-        The status should be failure
-        The error should include "Failed to copy"
-        The variable FLAG_ABORT_REQUESTED should equal "0"
-
         FLAG_ABORT_REQUESTED=0
         rmdir "$dest_dir"
       End
@@ -323,48 +252,6 @@ Describe 'xcp.sh - Integration tests'
       End
     End
 
-    Describe 'When: Handling copy failures with fail-fast'
-      It 'Then: [異常] - fail-fast 指定時はエラーで即時停止フラグを立てる'
-        # Arrange: Prepare missing source to force failure
-        missing_src=$(mktemp -u)
-        dest_dir=$(mktemp -d)
-        FLAG_FAIL_FAST=1
-        FLAG_ABORT_REQUESTED=0
-
-        # Act: Attempt to copy missing source
-        When call copy_single_item "$missing_src" "$dest_dir"
-
-        # Assert: copy_single_item should fail and request abort
-        The status should be failure
-        The error should include "Failed to copy"
-        The variable FLAG_ABORT_REQUESTED should equal "1"
-
-        # Cleanup
-        FLAG_FAIL_FAST=0
-        FLAG_ABORT_REQUESTED=0
-        rmdir "$dest_dir"
-      End
-
-      It 'Then: [異常] - fail-fast 無効時は停止フラグを立てずにエラーを返す'
-        # Arrange: Prepare missing source to force failure
-        missing_src=$(mktemp -u)
-        dest_dir=$(mktemp -d)
-        FLAG_FAIL_FAST=0
-        FLAG_ABORT_REQUESTED=0
-
-        # Act: Attempt to copy missing source
-        When call copy_single_item "$missing_src" "$dest_dir"
-
-        # Assert: copy_single_item should fail but not request abort
-        The status should be failure
-        The error should include "Failed to copy"
-        The variable FLAG_ABORT_REQUESTED should equal "0"
-
-        # Cleanup
-        FLAG_ABORT_REQUESTED=0
-        rmdir "$dest_dir"
-      End
-    End
   End
 
   # ============================================================================

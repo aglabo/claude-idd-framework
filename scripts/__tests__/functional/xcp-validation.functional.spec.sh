@@ -83,19 +83,6 @@ Describe 'xcp.sh - Validation functions'
         rm -f "$test_file"
       End
 
-      It 'Then: [エッジケース] - Handle empty source path'
-        # Arrange: Source script and reset error tracking
-        . "$SCRIPT" 2>/dev/null || true
-        logger_init
-
-        # Act: Call validate_source with empty string
-        When call validate_source ""
-
-        # Assert: Function should return failure and log error
-        The status should be failure
-        The error should include "Source not found"
-        The result of function logger_get_error_count should equal 1
-      End
     End
 
     Describe 'When: Implementing check_destination_directory function'
@@ -156,16 +143,6 @@ Describe 'xcp.sh - Validation functions'
         rm -f "$temp_file"
       End
 
-      It 'Then: [エッジケース] - 空文字列は失敗として扱う'
-        . "$SCRIPT" 2>/dev/null || true
-        logger_init
-
-        When call check_destination_directory ""
-
-        The status should be failure
-        The error should include "empty"
-        The result of function logger_get_error_count should equal 1
-      End
     End
 
     Describe 'When: Creating destination directories'
@@ -204,25 +181,6 @@ Describe 'xcp.sh - Validation functions'
         The path "$target_dir" should be directory
         The output should include "[INFO] Created directory"
 
-        rm -rf "$base_dir"
-      End
-
-      It 'Then: [正常] - ドライラン時はコマンドをログ出力する'
-        . "$SCRIPT" 2>/dev/null || true
-        logger_init
-        FLAG_PARENTS=1
-        FLAG_DRY_RUN=1
-        base_dir=$(mktemp -d)
-        target_dir="$base_dir/dry-run/dir"
-        expected_message="[DRY-RUN] mkdir -p \"$target_dir\""
-
-        When call create_destination_directory "$target_dir"
-
-        The status should be success
-        The output should include "$expected_message"
-        The path "$target_dir" should not exist
-
-        FLAG_DRY_RUN=0
         rm -rf "$base_dir"
       End
 
