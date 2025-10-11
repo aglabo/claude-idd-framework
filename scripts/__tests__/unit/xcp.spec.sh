@@ -190,25 +190,75 @@ Describe 'xcp.sh - Core Functions Unit Tests'
 
         # Assert: Should return 0 (proceed after backup)
         The status should be success
-        backup_path=$(echo "$dest_file".bak.*)
-        The path "$backup_path" should be file
+        The output should include "Backed up:"
+        # Verify backup file was created (original dest_file was moved)
+        The path "$dest_file" should not exist
+        backup_count=$(ls -1 "${dest_file}.bak."* 2>/dev/null | wc -l)
+        The variable backup_count should equal 1
 
         # Cleanup
-        rm -f "$src_file" "$backup_path"
+        rm -f "$src_file" "${dest_file}.bak."*
       End
 
-      It 'Then: [異常] - Return 2 when MODE_BACKUP and backup fails (abort)'
-        Skip "Test causes infinite loop - needs investigation"
-
-        # Arrange: Mock backup_file to fail
+      It 'Then: [異常] - Return 2 when MODE_BACKUP and backup fails due to timestamp collision (abort)'
+        # Arrange: Create destination and existing backup file to simulate timestamp collision
         . "$SCRIPT" 2>/dev/null || true
         logger_init
         src_file=$(mktemp)
         dest_file=$(mktemp)
+        echo "dest content" > "$dest_file"
         OPERATION_MODE=$MODE_BACKUP
 
-        # Act: assess_copy_preconditions calls backup_file which should fail
-        # Expected: Should return 2 (abort)
+        # Create existing backup file with fixed timestamp
+        fixed_timestamp="250112120000"
+        backup_path="${dest_file}.bak.${fixed_timestamp}"
+        touch "$backup_path"
+
+        # Override backup_file to use fixed timestamp
+        backup_file() {
+          local file="$1"
+          local timestamp="$fixed_timestamp"
+          local backup_path="${file}.bak.${timestamp}"
+
+          if [[ -e "$backup_path" ]]; then
+            log_error "Backup file already exists (timestamp collision): $backup_path"
+            return 1
+          fi
+          return 0
+        }
+
+        # Act: Call assess_copy_preconditions
+        When call assess_copy_preconditions "$src_file" "$dest_file"
+
+        # Assert: Should return 2 (abort due to backup failure)
+        The status should equal 2
+        The error should include "timestamp collision"
+
+        # Cleanup
+        rm -f "$src_file" "$dest_file" "$backup_path"
+      End
+
+      It 'Then: [異常] - Return 2 when MODE_BACKUP and mv command fails (abort)'
+        # Arrange: Mock mv to fail
+        . "$SCRIPT" 2>/dev/null || true
+        logger_init
+        src_file=$(mktemp)
+        dest_file=$(mktemp)
+        echo "dest content" > "$dest_file"
+        OPERATION_MODE=$MODE_BACKUP
+        FLAG_DRY_RUN=0
+
+        # Override mv to simulate failure
+        mv() {
+          return 1
+        }
+
+        # Act: Call assess_copy_preconditions
+        When call assess_copy_preconditions "$src_file" "$dest_file"
+
+        # Assert: Should return 2 (abort due to mv failure)
+        The status should equal 2
+        The error should include "Failed to backup"
 
         # Cleanup
         rm -f "$src_file" "$dest_file"

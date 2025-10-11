@@ -348,17 +348,36 @@ is_newer() {
 ##
 # @description Create timestamped backup of existing file
 # @arg $1 string File path to backup
+# @arg $2 string Optional timestamp (default: auto-generated via get_timestamp)
 # @example
 #   backup_file "/path/to/file.txt"
+#   backup_file "/path/to/file.txt" "250112120000"  # For testing
 # @exitcode 0 If backup created successfully
-# @exitcode 1 If backup failed
+# @exitcode 1 If backup failed (validation error, collision, mv failed)
 # @see get_timestamp log_info log_verbose log_error log_dry_run
 backup_file() {
   local file="$1"
-  local timestamp backup_path
+  local timestamp="${2:-$(get_timestamp)}"
+  local backup_path
 
-  timestamp="$(get_timestamp)"
+  # Validate input
+  if [[ -z "$file" ]]; then
+    log_error "backup_file: Empty file path"
+    return 1
+  fi
+
+  if [[ ! -e "$file" ]]; then
+    log_error "backup_file: File does not exist: $file"
+    return 1
+  fi
+
   backup_path="${file}.bak.${timestamp}"
+
+  # Check for timestamp collision
+  if [[ -e "$backup_path" ]]; then
+    log_error "Backup file already exists (timestamp collision): $backup_path"
+    return 1
+  fi
 
   if [[ $FLAG_DRY_RUN -eq 1 ]]; then
     log_dry_run "mv \"$file\" \"$backup_path\""
@@ -371,7 +390,7 @@ backup_file() {
     return 0
   fi
 
-  log_error "Failed to backup: $file"
+  log_error "Failed to backup: $file (mv failed)"
   return 1
 }
 
