@@ -507,61 +507,43 @@ Describe 'xcp.sh - Utility Functions Unit Tests'
   Describe 'Given: Timestamp comparison function (is_newer)'
     Describe 'When: Comparing source and destination timestamps'
       It 'Then: [正常] - Return success when source is newer'
-        # Arrange: Create older destination and newer source
+        # Arrange: Use virtual timestamps (no real files needed)
         . "$SCRIPT" 2>/dev/null || true
         logger_init
-        dest_file=$(mktemp)
-        echo "dest" > "$dest_file"
-        sleep 1
-        src_file=$(mktemp)
-        echo "src" > "$src_file"
+        src_time="1700000000"   # Newer timestamp
+        dest_time="1600000000"  # Older timestamp
 
-        # Act: Call is_newer
-        When call is_newer "$src_file" "$dest_file"
+        # Act: Call is_newer with virtual timestamps
+        When call is_newer "" "" "$src_time" "$dest_time"
 
         # Assert: Should return success
         The status should be success
-
-        # Cleanup
-        rm -f "$src_file" "$dest_file"
       End
 
       It 'Then: [正常] - Return failure when source is not newer'
-        # Arrange: Create newer destination and older source
+        # Arrange: Use virtual timestamps
         . "$SCRIPT" 2>/dev/null || true
         logger_init
-        src_file=$(mktemp)
-        echo "src" > "$src_file"
-        sleep 1
-        dest_file=$(mktemp)
-        echo "dest" > "$dest_file"
+        src_time="1600000000"   # Older timestamp
+        dest_time="1700000000"  # Newer timestamp
 
-        # Act: Call is_newer
-        When call is_newer "$src_file" "$dest_file"
+        # Act: Call is_newer with virtual timestamps
+        When call is_newer "" "" "$src_time" "$dest_time"
 
         # Assert: Should return failure
         The status should be failure
-
-        # Cleanup
-        rm -f "$src_file" "$dest_file"
       End
 
       It 'Then: [エッジケース] - Return success when timestamps unavailable'
-        # Arrange: Use nonexistent destination
+        # Arrange: Use empty virtual timestamps
         . "$SCRIPT" 2>/dev/null || true
         logger_init
-        src_file=$(mktemp)
-        echo "data" > "$src_file"
-        nonexistent_dest="$(mktemp -u)"
 
-        # Act: Call is_newer
-        When call is_newer "$src_file" "$nonexistent_dest"
+        # Act: Call is_newer with empty timestamps
+        When call is_newer "" "" "" ""
 
         # Assert: Should return success (assume newer)
         The status should be success
-
-        # Cleanup
-        rm -f "$src_file"
       End
     End
   End

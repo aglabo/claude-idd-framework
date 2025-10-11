@@ -316,20 +316,37 @@ get_mtime() {
 # @description Determine if source file is newer than destination file
 # @arg $1 string Source file path
 # @arg $2 string Destination file path
+# @arg $3 string Optional source mtime override for testing (Unix timestamp)
+# @arg $4 string Optional dest mtime override for testing (Unix timestamp)
 # @example
 #   if is_newer "$src" "$dest"; then
 #     echo "Update required"
 #   fi
+#   # Testing with virtual timestamps
+#   is_newer "" "" "1700000000" "1600000000"  # src newer
 # @exitcode 0 If source is newer or comparison unavailable
 # @exitcode 1 If source is not newer than destination
 # @see get_mtime log_verbose
 is_newer() {
   local src="$1"
   local dest="$2"
+  local src_time_override="${3:-}"
+  local dest_time_override="${4:-}"
 
   local src_time dest_time
-  src_time="$(get_mtime "$src")"
-  dest_time="$(get_mtime "$dest")"
+
+  # Use override if provided, otherwise get from file
+  if [[ -n "$src_time_override" ]]; then
+    src_time="$src_time_override"
+  else
+    src_time="$(get_mtime "$src")"
+  fi
+
+  if [[ -n "$dest_time_override" ]]; then
+    dest_time="$dest_time_override"
+  else
+    dest_time="$(get_mtime "$dest")"
+  fi
 
   if [[ -z "$src_time" || -z "$dest_time" ]]; then
     log_verbose "mtime unavailable: src=$src_time dest=$dest_time"

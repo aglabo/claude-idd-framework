@@ -89,9 +89,10 @@ Describe 'xcp.sh - Integration tests'
         # Arrange: Create destination file, wait, then create newer source
         dest_file=$(mktemp)
         echo "old content" > "$dest_file"
-        sleep 1
+        touch -t 202001010000 "$dest_file"
         src_file=$(mktemp)
         echo "new content" > "$src_file"
+        touch -t 202501010000 "$src_file"
         FLAG_VERBOSE=1
         OPERATION_MODE=$MODE_UPDATE
 
@@ -112,9 +113,10 @@ Describe 'xcp.sh - Integration tests'
         # Arrange: Create newer destination and older source
         src_file=$(mktemp)
         echo "source content" > "$src_file"
-        sleep 1
+        touch -t 202001010000 "$src_file"
         dest_file=$(mktemp)
         echo "existing content" > "$dest_file"
+        touch -t 202501010000 "$dest_file"
         OPERATION_MODE=$MODE_UPDATE
 
         # Act: Call copy_single_item with older source than destination
@@ -201,7 +203,6 @@ Describe 'xcp.sh - Integration tests'
         echo "timestamp content" > "$src_file"
         echo "old content" > "$dest_file"
         command touch -t 202001010000 "$src_file" 2>/dev/null || command touch -d '2020-01-01 00:00:00' "$src_file"
-        sleep 1
         command touch -t 202402020202 "$dest_file" 2>/dev/null || command touch -d '2024-02-02 02:02:00' "$dest_file"
         OPERATION_MODE=$MODE_OVERWRITE
 

@@ -139,9 +139,10 @@ Describe 'xcp.sh - Core Functions Unit Tests'
         logger_init
         dest_file=$(mktemp)
         echo "dest" > "$dest_file"
-        sleep 1
+        touch -t 202001010000 "$dest_file"
         src_file=$(mktemp)
         echo "src" > "$src_file"
+        touch -t 202501010000 "$src_file"
         OPERATION_MODE=$MODE_UPDATE
 
         # Act: Call assess_copy_preconditions
@@ -160,9 +161,10 @@ Describe 'xcp.sh - Core Functions Unit Tests'
         logger_init
         src_file=$(mktemp)
         echo "src" > "$src_file"
-        sleep 1
+        touch -t 202001010000 "$src_file"
         dest_file=$(mktemp)
         echo "dest" > "$dest_file"
+        touch -t 202501010000 "$dest_file"
         OPERATION_MODE=$MODE_UPDATE
 
         # Act: Call assess_copy_preconditions
