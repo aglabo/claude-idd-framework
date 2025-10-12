@@ -11,7 +11,7 @@ shell=bash
 # enable=all
 
 # Source path for sourced files
-# source-path=SCRIPTDIR
+source-path=SCRIPTDIR
 
 # Exclude paths (glob patterns)
 # exclude-path=vendor/*

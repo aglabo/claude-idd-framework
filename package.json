@@ -14,7 +14,7 @@
   },
   "scripts": {
     "prepare": "lefthook install",
-    "lint:shell": "bash -c 'shellcheck scripts/*.sh'",
+    "lint:shell": "bash -c 'shellcheck -x scripts/*.sh'",
     "test:scripts": "bash -c 'shellspec'",
     "test:scripts:watch": "bash -c 'shellspec --watch'",
     "test:scripts:all": "concurrently \"pnpm run test:scripts:unit\" \"pnpm run test:scripts:functional\" \"pnpm run test:scripts:integration\" \"pnpm run test:scripts:e2e\"",
