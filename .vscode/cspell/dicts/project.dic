@@ -15,8 +15,10 @@ conv
 CUST
 davidanson
 dbaeumer
+dotglob
 eamodio
 endswith
+ENOSPC
 errorlens
 esm
 ESM
@@ -53,6 +55,7 @@ mttr
 mylink
 nativestrict
 neverthrow
+nullglob
 numstat
 oncall
 oneline
@@ -81,6 +84,7 @@ stylelintcache
 subdirs
 TESTID
 timeframe
+TMPBASE
 tsup
 userid
 usernamehw
