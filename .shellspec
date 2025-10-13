@@ -15,6 +15,7 @@
 
 # Show execution times
 # --profile
+--profile-limit=10
 
 # Show failure messages in detail
  --fail-fast=1
@@ -27,7 +28,8 @@
 # --kcov-options "--exclude-pattern=/usr"
 
 # Execution options
---jobs 4
+--jobs 32
+
 # --random none
 
 # Output directory for reports

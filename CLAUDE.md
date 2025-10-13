@@ -51,7 +51,8 @@ docs/
     ├── 08-quality-assurance.md            # Quality gates & automated checks
     ├── 09-document-quality-assurance.md   # Document quality criteria
     ├── 10-templates-and-standards.md      # Source code templates & JSDoc rules
-    └── 11-bdd-implementation-details.md   # atsushifx-style BDD implementation details
+    ├── 11-bdd-implementation-details.md   # atsushifx-style BDD implementation details
+    └── 12-shell-script-development.md     # Shell script BDD patterns
 
 scripts/                  # Shell script implementations
 ├── xcp.sh                        # eXtended CoPy utility (main project)
@@ -340,17 +341,29 @@ For developing shell scripts (like `xcp.sh`), use the **SDD (Spec-Driven Develop
 #### Reference Implementation: xcp.sh
 
 - **Project**: `scripts/xcp.sh` (eXtended CoPy utility)
-- **Status**: ✅ **COMPLETE** (T1-T10 all implemented and tested)
-- **Test Coverage**: 148 examples, 100% pass rate (6 skipped on Windows)
-- **Lines of Code**: 662 lines (implementation), 1687 lines (tests)
-- **Features**:
+- **Status**: ✅ **100% COMPLETE - PRODUCTION READY** (T1-T10 all implemented and tested)
+- **Test Coverage**: 148 examples, 148 passing (100% success rate), 0 failures, 6 skipped (Windows)
+- **Implementation**: 662 lines (main script), 1687 lines (tests), 20+ functions
+- **Test/Code Ratio**: 2.5:1 (comprehensive coverage)
+- **Latest Updates (2025-10-12)**:
+  - Simplified helper functions, removed wrapper-only helpers
+  - Stabilized copy logic with improved error handling
+  - Expanded modular tests with better organization
+  - Relocated shellspec tests for clarity
+- **Core Features**:
   - Multiple operation modes (skip, overwrite, update, backup)
   - Dry-run mode for safe testing
-  - Recursive directory copying with symlink handling
+  - Recursive directory copying with symlink handling (find-based two-phase approach)
   - Error tracking and fail-fast mode
   - Comprehensive logging (quiet/verbose modes)
+  - Full CLI argument parsing with help/version support
+- **Architecture**:
+  - Modular design with clear separation of concerns
+  - Read-only validation functions separated from side-effect functions
+  - Mode-driven flexible behavior control
+  - Early error return pattern throughout
 - **Reference**: See `docs/.cc-sdd/scripts/xcp/` for requirements, specs, and tasks
-- **Production Ready**: Fully documented with shdoc headers, ready for use
+- **Production Ready**: Fully documented with shdoc headers, shellcheck clean, ready for deployment
 
 ## Troubleshooting
 

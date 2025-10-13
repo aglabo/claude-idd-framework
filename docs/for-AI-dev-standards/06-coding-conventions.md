@@ -147,6 +147,156 @@ function filterMessage(message: string, level: LogLevel): boolean {
 }
 ````
 
+## 制御フロー規約
+
+### 早期リターンの原則
+
+🔴 必須: エラー条件や特殊ケースを関数の先頭で処理し早期リターンすること。正常系処理は最後に配置し、ネストを浅く保つ。
+
+この原則は TypeScript、JavaScript、ShellScript すべてに適用されます。深いネスト構造を避け、読みやすく保守しやすいコードを実現します。
+
+#### TypeScript/JavaScript での早期リターン
+
+バリデーションやエラーチェックを関数の先頭に配置し、条件を満たさない場合は即座に return します。
+
+```typescript
+// ❌ 悪い例: 深いネスト構造
+function processUser(user: User | null): Result<UserData, Error> {
+  if (user !== null) {
+    if (user.isActive) {
+      if (user.hasPermission('read')) {
+        const data = fetchUserData(user.id);
+        if (data !== null) {
+          return ok(data);
+        } else {
+          return err(new Error('Data not found'));
+        }
+      } else {
+        return err(new Error('Permission denied'));
+      }
+    } else {
+      return err(new Error('User inactive'));
+    }
+  } else {
+    return err(new Error('User is null'));
+  }
+}
+
+// ✅ 良い例: 早期リターンでフラットな構造
+function processUser(user: User | null): Result<UserData, Error> {
+  // エラー条件を先頭で処理
+  if (user === null) {
+    return err(new Error('User is null'));
+  }
+
+  if (!user.isActive) {
+    return err(new Error('User inactive'));
+  }
+
+  if (!user.hasPermission('read')) {
+    return err(new Error('Permission denied'));
+  }
+
+  // 正常系処理は最後に配置
+  const data = fetchUserData(user.id);
+  if (data === null) {
+    return err(new Error('Data not found'));
+  }
+
+  return ok(data);
+}
+```
+
+#### ShellScript での早期リターン
+
+ShellScript でも同様に、検証失敗やエラー条件を関数先頭で処理します。`xcp.sh` の実装パターンを参考にしてください。
+
+```bash
+# ✅ 良い例: xcp.sh の validate_source 関数パターン
+validate_source() {
+  local source="$1"
+
+  # エラー条件1: ファイルが存在しない
+  if [[ ! -e "$source" ]]; then
+    log_error "Source not found: $source"
+    return 1
+  fi
+
+  # エラー条件2: 読み取り不可
+  if [[ ! -r "$source" ]]; then
+    log_error "Source not readable: $source"
+    return 1
+  fi
+
+  # 正常終了は最後
+  return 0
+}
+
+# ✅ 良い例: 複数の状態を判定する関数
+check_destination_directory() {
+  local dest_dir="$1"
+
+  # エラー条件1: パスが空
+  if [[ -z "$dest_dir" ]]; then
+    log_error "Destination path is empty"
+    return 1
+  fi
+
+  # 正常条件: ディレクトリが存在し書き込み可能
+  if [[ -d "$dest_dir" ]]; then
+    if [[ -w "$dest_dir" ]]; then
+      return 0
+    fi
+    log_error "Destination directory not writable: $dest_dir"
+    return 1
+  fi
+
+  # エラー条件2: パスが存在するがディレクトリではない
+  if [[ -e "$dest_dir" ]]; then
+    log_error "Destination path exists but is not a directory: $dest_dir"
+    return 1
+  fi
+
+  # 特殊条件: ディレクトリが存在しない(別処理が必要)
+  return 2
+}
+```
+
+#### Result 型との組み合わせ
+
+`neverthrow` の `Result` 型を使用する場合も早期リターン原則を適用します。
+
+```typescript
+import { err, ok, Result } from 'neverthrow';
+
+function createLogger(config: unknown): Result<AgLogger, AglaError> {
+  // バリデーション失敗時は早期リターン
+  const validationResult = validateAgLoggerConfig(config);
+  if (validationResult.isErr()) {
+    return err(validationResult.error);
+  }
+
+  // 初期化失敗時も早期リターン
+  const initResult = initializeLogger(validationResult.value);
+  if (initResult.isErr()) {
+    return err(initResult.error);
+  }
+
+  // 正常系は最後
+  return ok(initResult.value);
+}
+```
+
+#### 早期リターンのメリット
+
+早期リターンパターンは以下の利点があります:
+
+- コードのネストレベルを浅く保つ
+- 関数の事前条件(前提条件)を明確にする
+- エラーハンドリングと正常系処理を明確に分離
+- テストケースの網羅性が向上(エラー条件ごとにテスト可能)
+- BDD テストとの親和性が高い(Given-When-Then 構造と対応)
+
 ## プロジェクト固有規約
 
 ### ファイル命名規約

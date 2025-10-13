@@ -35,6 +35,11 @@
 SHELLSPEC_PROJECT_ROOT="${SHELLSPEC_PROJECT_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
 export SHELLSPEC_PROJECT_ROOT
 
+if [ -d /w/temp ]; then
+  export TMPDIR=/w/temp
+  export SHELLSPEC_TMPBASE=/w/temp
+fi
+
 # Common test utilities can be added here
 # Example: setup_temp_dir() { ... }
 # Example: cleanup_temp_dir() { ... }

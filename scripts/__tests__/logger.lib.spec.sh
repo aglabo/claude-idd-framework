@@ -204,7 +204,12 @@ Describe 'logger.lib.sh'
     BeforeEach 'setup'
 
     Context 'Given: FLAG_QUIET=0 (default)'
-      It 'Then: [正常] - outputs message with [INFO] prefix to stdout'
+      It 'Then: [正常] - outputs message with [INFO] prefix'
+        When call log_info "Test message"
+        The output should include "[INFO] Test message"
+      End
+
+      It 'Then: [正常] - outputs to stdout (not stderr)'
         When call log_info "Test message"
         The output should include "[INFO] Test message"
         The stderr should equal ""
@@ -216,6 +221,26 @@ Describe 'logger.lib.sh'
         FLAG_QUIET=1
         When call log_info "Test message"
         The output should equal ""
+      End
+    End
+
+    Context 'Given: edge cases'
+      It 'Then: [エッジケース] - handles empty message'
+        When call log_info ""
+        The output should include "[INFO] "
+      End
+
+      It 'Then: [エッジケース] - handles special characters'
+        When call log_info "Message with \$VAR and 'quotes'"
+        The output should include "\$VAR"
+        The output should include "'quotes'"
+      End
+
+      It 'Then: [エッジケース] - handles multi-line message'
+        When call log_info "Line 1
+Line 2"
+        The output should include "Line 1"
+        The output should include "Line 2"
       End
     End
   End
@@ -236,11 +261,31 @@ Describe 'logger.lib.sh'
     End
 
     Context 'Given: FLAG_VERBOSE=1'
-      It 'Then: [正常] - outputs message with [VERBOSE] prefix to stdout'
+      It 'Then: [正常] - outputs message with [VERBOSE] prefix'
+        FLAG_VERBOSE=1
+        When call log_verbose "Test message"
+        The output should include "[VERBOSE] Test message"
+      End
+
+      It 'Then: [正常] - outputs to stdout (not stderr)'
         FLAG_VERBOSE=1
         When call log_verbose "Test message"
         The output should include "[VERBOSE] Test message"
         The stderr should equal ""
+      End
+    End
+
+    Context 'Given: edge cases'
+      It 'Then: [エッジケース] - handles empty message when verbose enabled'
+        FLAG_VERBOSE=1
+        When call log_verbose ""
+        The output should include "[VERBOSE] "
+      End
+
+      It 'Then: [エッジケース] - handles special characters when verbose enabled'
+        FLAG_VERBOSE=1
+        When call log_verbose "Message with \$VAR"
+        The output should include "\$VAR"
       End
     End
   End
@@ -254,17 +299,43 @@ Describe 'logger.lib.sh'
     BeforeEach 'setup'
 
     Context 'Given: single error'
-      test_error_tracking() {
+      It 'Then: [正常] - outputs to stderr with [ERROR] prefix'
+        When call log_error "Test error"
+        The stderr should include "[ERROR] Test error"
+      End
+
+      It 'Then: [正常] - does not output to stdout'
+        When call log_error "Test error"
+        The output should equal ""
+        The stderr should include "[ERROR] Test error"
+      End
+
+      test_error_increments_count() {
         log_error "Test error"
-        echo "count:$(logger_get_error_count)"
+        logger_get_error_count
+      }
+
+      test_error_stored_in_log() {
+        log_error "Test error"
         logger_get_errors
       }
 
-      It 'Then: [正常] - outputs to stderr, increments count, and stores in log'
-        When run test_error_tracking
+      It 'Then: [正常] - increments error count'
+        When run test_error_increments_count
+        The output should equal "1"
         The stderr should include "[ERROR] Test error"
-        The output should include "count:1"
-        The output should include "Test error"
+      End
+
+      It 'Then: [正常] - stores error in log'
+        When run test_error_stored_in_log
+        The output should equal "Test error"
+        The stderr should include "[ERROR] Test error"
+      End
+
+      It 'Then: [正常] - outputs regardless of FLAG_QUIET'
+        FLAG_QUIET=1
+        When call log_error "Test error"
+        The stderr should include "[ERROR] Test error"
       End
     End
 
@@ -290,6 +361,19 @@ Describe 'logger.lib.sh'
         The stderr should include "[ERROR] Error 3"
       End
     End
+
+    Context 'Given: edge cases'
+      It 'Then: [エッジケース] - handles empty error message'
+        When call log_error ""
+        The stderr should include "[ERROR] "
+      End
+
+      It 'Then: [エッジケース] - handles special characters'
+        When call log_error "Error with \$VAR and 'quotes'"
+        The stderr should include "\$VAR"
+        The stderr should include "'quotes'"
+      End
+    End
   End
 
   Describe 'log_dry_run()'
@@ -302,11 +386,45 @@ Describe 'logger.lib.sh'
     BeforeEach 'setup'
 
     Context 'Given: normal operation'
-      It 'Then: [正常] - outputs with [DRY-RUN] prefix to stdout regardless of flags'
-        FLAG_QUIET=1
+      It 'Then: [正常] - outputs with [DRY-RUN] prefix'
         When call log_dry_run "cp source dest"
         The output should include "[DRY-RUN] cp source dest"
+      End
+
+      It 'Then: [正常] - outputs to stdout (not stderr)'
+        When call log_dry_run "test operation"
+        The output should include "[DRY-RUN] test operation"
         The stderr should equal ""
+      End
+
+      It 'Then: [正常] - outputs regardless of FLAG_QUIET'
+        FLAG_QUIET=1
+        When call log_dry_run "test operation"
+        The output should include "[DRY-RUN] test operation"
+      End
+
+      It 'Then: [正常] - outputs regardless of FLAG_VERBOSE'
+        FLAG_VERBOSE=0
+        When call log_dry_run "test operation"
+        The output should include "[DRY-RUN] test operation"
+      End
+    End
+
+    Context 'Given: edge cases'
+      It 'Then: [エッジケース] - handles empty operation'
+        When call log_dry_run ""
+        The output should include "[DRY-RUN] "
+      End
+
+      It 'Then: [エッジケース] - handles special characters'
+        When call log_dry_run "cp \$SOURCE \$DEST"
+        The output should include "\$SOURCE"
+        The output should include "\$DEST"
+      End
+
+      It 'Then: [エッジケース] - handles complex command with pipes'
+        When call log_dry_run "cat file | grep pattern | sort"
+        The output should include "cat file | grep pattern | sort"
       End
     End
   End
