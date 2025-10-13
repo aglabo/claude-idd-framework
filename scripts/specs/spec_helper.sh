@@ -35,6 +35,11 @@
 SHELLSPEC_PROJECT_ROOT="${SHELLSPEC_PROJECT_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
 export SHELLSPEC_PROJECT_ROOT
 
+# Set PROJECT_ROOT and change to repository root
+PROJECT_ROOT="$(git rev-parse --show-toplevel)"
+export PROJECT_ROOT
+cd "$PROJECT_ROOT" || exit 1
+
 if [ -d /w/temp ]; then
   export TMPDIR=/w/temp
   export SHELLSPEC_TMPBASE=/w/temp
