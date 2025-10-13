@@ -199,3 +199,4 @@ _track_error() {
   _ERROR_LOG+=("${message}")
   _ERROR_COUNT=$((_ERROR_COUNT + 1))
 }
+
