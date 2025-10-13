@@ -15,12 +15,12 @@
   "scripts": {
     "prepare": "lefthook install",
     "lint:shell": "bash -c 'shellcheck -x scripts/*.sh'",
-    "test:scripts": "bash -c 'shellspec'",
+    "test:scripts": "bash scripts/run-shellspec.sh ",
     "test:scripts:watch": "bash -c 'shellspec --watch'",
     "test:scripts:all": "concurrently \"pnpm run test:scripts:unit\" \"pnpm run test:scripts:functional\" \"pnpm run test:scripts:integration\" \"pnpm run test:scripts:e2e\"",
-    "test:scripts:unit": "bash -c 'shellspec --default-path \"scripts/__tests__/unit\"'",
-    "test:scripts:functional": "bash -c 'shellspec --default-path \"scripts/__tests__/functional\"'",
-    "test:scripts:integration": "bash -c 'shellspec --default-path \"scripts/__tests__/integration\"'",
+    "test:scripts:unit": "bash scripts/run-shellspec.sh unit",
+    "test:scripts:functional": "bash scripts/run-shellspec.sh functional",
+    "test:scripts:integration": "bash scripts/run-shellspec.sh integration",
     "test:scripts:e2e": "bash -c 'shellspec --default-path \"scripts/__tests__/e2e\"'"
   },
   "devDependencies": {
