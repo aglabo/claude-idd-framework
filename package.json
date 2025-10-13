@@ -21,7 +21,7 @@
     "test:scripts:unit": "bash scripts/run-shellspec.sh unit",
     "test:scripts:functional": "bash scripts/run-shellspec.sh functional",
     "test:scripts:integration": "bash scripts/run-shellspec.sh integration",
-    "test:scripts:e2e": "bash -c 'shellspec --default-path \"scripts/__tests__/e2e\"'"
+    "test:scripts:e2e": "bash scripts/run-shellspec.sh e2e "
   },
   "devDependencies": {
     "@commitlint/config-conventional": "^19.8.1",
