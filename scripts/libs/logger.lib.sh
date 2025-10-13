@@ -200,3 +200,6 @@ _track_error() {
   _ERROR_COUNT=$((_ERROR_COUNT + 1))
 }
 
+error_print(){
+  echo $@ >2
+}

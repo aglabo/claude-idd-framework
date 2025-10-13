@@ -76,6 +76,15 @@ REPO_ROOT="$(git rev-parse --show-toplevel)"
 readonly REPO_ROOT
 
 ##
+# @description Script directory path (absolute)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly SCRIPT_DIR
+
+# Source io-utils library for error_print
+# shellcheck source=libs/io-utils.lib.sh
+. "${SCRIPT_DIR}/libs/io-utils.lib.sh"
+
+##
 # @description Git commit message file path
 # @default .git/COMMIT_EDITMSG
 GIT_COMMIT_MSG=".git/COMMIT_EDITMSG"
@@ -111,7 +120,7 @@ parse_options() {
         exit 0
         ;;
       -*)
-        echo "Unknown option: $1" >&2
+        error_print "Unknown option: $1"
         exit 1
         ;;
       *)
@@ -223,7 +232,7 @@ output_commit_message() {
     # Git buffer mode
     rm -f "${output_file}"
     echo "${commit_msg}" > "${output_file}"
-    echo "✦ Commit message written to $output_file" >&2
+    error_print "✦ Commit message written to $output_file"
   fi
 }
 
@@ -242,7 +251,7 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
   # Gitバッファーモードの場合のみ既存メッセージチェック
   if [[ "$FLAG_OUTPUT_TO_STDOUT" == false && -f "$GIT_COMMIT_MSG" ]]; then
     if has_existing_message "$GIT_COMMIT_MSG"; then
-      echo "✦ Detected existing Git-generated commit message. Skipping Codex." >&2
+      error_print "✦ Detected existing Git-generated commit message. Skipping Codex."
       exit 0
     fi
   fi
