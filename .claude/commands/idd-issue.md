@@ -11,7 +11,7 @@ allowed-tools:
   mcp__codex-mcp__codex(*),
   mcp__serena-mcp__*,
   mcp__lsmcp__*
-argument-hint: [subcommand] [options]
+argument-hint: [subcommand (new|list|view|edit|load|push|branch)] [options(issue_no)]
 description: GitHub Issue 作成・管理システム - issue-generatorエージェントによる構造化Issue作成
 
 # 設定変数
@@ -42,6 +42,7 @@ created: 2025-09-30
 authors:
   - atsushifx
 changes:
+  - 2025-10-13: issue-generatorエージェントの Claude/Codex 両モードサポートに対応
   - 2025-10-03:
     allowed-toolsに各種コマンドを追加、見やすいように成形
     ブランチ自動作成機能追加 - codex-mcpによるcommitlint準拠のブランチ名生成
@@ -502,6 +503,9 @@ show_issue_types
 echo ""
 
 # Note: Claude will invoke issue-generator agent via Task tool
+# Agent supports two modes:
+#   - Codex mode (default): mcp__codex-mcp__codex で処理
+#   - Claude mode: --use-claude フラグで Claude が直接処理
 # Agent will guide the user through issue creation interactively
 # After issue creation, the agent must save session using:
 #   save_session "$FILENAME" "$ISSUE_NUM" "$TITLE" "$ISSUE_TYPE" "new"
@@ -742,6 +746,8 @@ fi
 1. **コマンド実行**: ユーザーが `/idd-issue new` を実行
 2. **Issue種別選択**: 利用可能な Issue 種別を表示
 3. **エージェント起動**: Claude が Task tool で issue-generator エージェントを起動
+   - デフォルト: Codex モード (Codex MCP に委譲)
+   - `--use-claude` 指定時: Claude モード (Claude が直接処理)
 4. **エージェント処理**:
    - Issue 種別とタイトル取得
    - `.github/ISSUE_TEMPLATE/{種別}.yml` 読み込み
@@ -751,6 +757,11 @@ fi
    - `temp/idd/issues/new-{timestamp}-{type}-{slug}.md` に保存
    - セッション保存: `save_session()` でセッション情報を保存
 5. **完了報告**: エージェントが生成結果を報告
+
+### 生成モードの選択
+
+- **Codex モード** (デフォルト): Codex の強力な推論能力により、プロジェクトの文脈を深く理解した具体的な Issue を生成
+- **Claude モード** (`--use-claude`): Claude が直接処理し、ユーザーとの対話が同一セッション内で完結、処理過程が可視化される
 
 ### セッション管理
 
