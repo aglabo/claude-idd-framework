@@ -44,6 +44,11 @@ Spec-Driven-Development (SDD) の各フェーズを管理するコマンド。
 #!/bin/bash
 # SDD コマンド用ヘルパー関数集
 
+# Load helper libraries
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LIBS_DIR="$SCRIPT_DIR/_libs"
+. "$LIBS_DIR/idd-session.lib.sh"
+
 # 環境変数設定
 setup_sdd_env() {
   REPO_ROOT=$(git rev-parse --show-toplevel)
@@ -60,11 +65,9 @@ save_session() {
 
   mkdir -p "$SDD_BASE"
 
-  declare -A session_data=(
-    [namespace]="$namespace"
-    [module]="$module"
-  )
-  _save_session "$SESSION_FILE" session_data
+  _save_session "$SESSION_FILE" \
+    namespace "$namespace" \
+    module "$module"
 
   echo "💾 Session saved: $namespace/$module"
 }
@@ -73,7 +76,7 @@ save_session() {
 load_session() {
   local mode="${1:-required}"
 
-  if [ ! -f "$SESSION_FILE" ]; then
+  if ! _load_session "$SESSION_FILE"; then
     if [ "$mode" != "optional" ]; then
       echo "❌ No active session found."
       echo "💡 Run '/sdd init <namespace>/<module>' first."
@@ -81,7 +84,6 @@ load_session() {
     return 1
   fi
 
-  source "$SESSION_FILE"
   echo "📂 Session: $namespace/$module"
   return 0
 }
@@ -590,18 +592,10 @@ for subdir in requirements specifications tasks implementation; do
 done
 
 # セッション保存
-SESSION_FILE="$SDD_BASE/.last-session"
-mkdir -p "$SDD_BASE"
-
-cat > "$SESSION_FILE" << EOF
-namespace=$NAMESPACE
-module=$MODULE
-timestamp=$(date -Iseconds 2>/dev/null || date +%Y-%m-%dT%H:%M:%S)
-EOF
+save_session "$NAMESPACE" "$MODULE"
 
 echo ""
 echo "🎉 SDD structure initialized for $NAMESPACE/$MODULE"
-echo "💾 Session saved"
 ```
 
 ### Subcommand: req
