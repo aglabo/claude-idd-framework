@@ -25,9 +25,9 @@ source "$SCRIPT_DIR/io-utils.lib.sh"
 # @param $2 ファイル名
 # @return 0=成功, 1=失敗
 # @example
-#   _save_last_file "$PR_DIR" "feature-123.md"
+#   save_last_file "$PR_DIR" "feature-123.md"
 #   # → $PR_DIR/.last_draft に "feature-123.md" を保存
-_save_last_file() {
+save_last_file() {
   local dir="$1"
   local filename="$2"
 
@@ -46,8 +46,8 @@ _save_last_file() {
 # @param $2 デフォルトファイル名 (ファイルがない場合)
 # @return ファイル名
 # @example
-#   OUTPUT_FILE=$(_load_last_file "$PR_DIR" "pr_current_draft.md")
-_load_last_file() {
+#   OUTPUT_FILE=$(load_last_file "$PR_DIR" "pr_current_draft.md")
+load_last_file() {
   local dir="$1"
   local default="$2"
 
@@ -107,9 +107,9 @@ _save_session() {
 # @param $1 セッションファイルパス
 # @return 0=成功 (変数が展開される), 1=失敗
 # @example
-#   _load_session "$SESSION_FILE"
+#   load_session "$SESSION_FILE"
 #   echo "Last issue: $LAST_ISSUE_NUMBER"
-_load_session() {
+load_session() {
   local session_file="$1"
 
   if [ ! -f "$session_file" ]; then
@@ -127,10 +127,10 @@ _load_session() {
 # @param $1 セッションファイルパス
 # @return 0=存在, 1=存在しない
 # @example
-#   if _has_session "$SESSION_FILE"; then
+#   if has_session "$SESSION_FILE"; then
 #     echo "Session exists"
 #   fi
-_has_session() {
+has_session() {
   local session_file="$1"
   [ -f "$session_file" ]
 }
