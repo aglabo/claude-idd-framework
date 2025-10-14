@@ -316,6 +316,7 @@ done
 このスクリプトは関数ライブラリの関数を使用してシンプルに実装されています。
 
 **改善ポイント:**
+
 - `show_summary()` と `get_choice()` に分離することで、それぞれの責務が明確
 - `get_choice()` が入力検証を行うため、case 文では y/n/q のみ処理
 - yes/no/quit も入力可能（`get_choice()` 内で y/n/q に正規化）
@@ -387,19 +388,46 @@ show_summary "$summary"
 
 y/n/q の選択を求め、入力検証を行います。
 
-この関数は `.claude/commands/_libs/io-utils.lib.sh` で定義されています。
+定義:
+
+```bash
+# y/n/q 選択入力 (入力検証ループ付き)
+# 出力: y/n/q (小文字に正規化)
+# 終了コード: 0
+get_choice() {
+  local choice
+
+  while true; do
+    read -r -p "選択してください (y/n/q): " choice
+
+    # 小文字に変換
+    choice=$(echo "$choice" | tr '[:upper:]' '[:lower:]')
+
+    case "$choice" in
+      y|yes)
+        echo "y"
+        return 0
+        ;;
+      n|no)
+        echo "n"
+        return 0
+        ;;
+      q|quit)
+        echo "q"
+        return 0
+        ;;
+      *)
+        echo "エラー: y/yes, n/no, q/quit のいずれかを入力してください" >&2
+        ;;
+    esac
+  done
+}
+```
 
 使用例:
 
 ```bash
-# ライブラリを読み込む
-. "${libs_dir}/io-utils.lib.sh"
-
-# デフォルトプロンプトで使用
 choice=$(get_choice)
-
-# カスタムプロンプトで使用
-choice=$(get_choice "このタイトルでよろしいですか? (y/n/q): ")
 ```
 
 ### show_summary_and_get_choice()

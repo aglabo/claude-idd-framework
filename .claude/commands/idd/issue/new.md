@@ -107,6 +107,7 @@ SESSION_FILE="$ISSUES_DIR/.last.session"
    - Markdown形式の下書きを取得
    - `temp/idd/issues/` ディレクトリに保存
    - ファイル名: `{issue番号}-{YYYYMMDD-HHMMSS}-{issue_type}-{slug}.md`
+   - slugはタイトルを英訳し、それを小文字で繋ぐ(12文字まで)
    - issue番号: 新規作成時は `new` (GitHub Issue作成後に実際の番号に更新)
    - 例: `new-20251016-151030-enhancement-claude-mcp-integration.md`
    - 保存完了メッセージを表示

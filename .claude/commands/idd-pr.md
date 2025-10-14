@@ -86,12 +86,16 @@ changes:
 
 ```bash
 #!/bin/bash
+# Load helper libraries
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LIBS_DIR="$SCRIPT_DIR/_libs"
+. "$LIBS_DIR/idd-session.lib.sh"
+
 # Setup
 REPO_ROOT=$(git rev-parse --show-toplevel)
 PR_DIR="$REPO_ROOT/temp/idd/pr"
 OUTPUT_FILE="${1:-pr_current_draft.md}"  # --output=XXX から解析
 DRAFT_PATH="$PR_DIR/$OUTPUT_FILE"
-LAST_DRAFT="$PR_DIR/.last_draft"
 mkdir -p "$PR_DIR"
 
 # Parse --output option if provided
@@ -103,7 +107,7 @@ for arg in "$@"; do
 done
 
 # Save the output filename for later use
-echo "$OUTPUT_FILE" > "$LAST_DRAFT"
+_save_last_file "$PR_DIR" "$OUTPUT_FILE"
 
 echo "🚀 Launching pr-generator agent..."
 echo "📝 Output file: $DRAFT_PATH"
@@ -124,15 +128,14 @@ echo "⏳ Please wait for pr-generator agent to complete..."
 
 ```bash
 #!/bin/bash
+# Load helper libraries
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LIBS_DIR="$SCRIPT_DIR/_libs"
+. "$LIBS_DIR/idd-session.lib.sh"
+
 REPO_ROOT=$(git rev-parse --show-toplevel)
 PR_DIR="$REPO_ROOT/temp/idd/pr"
-LAST_DRAFT="$PR_DIR/.last_draft"
-OUTPUT_FILE="pr_current_draft.md"
-
-# Load last used filename if available
-if [[ -f "$LAST_DRAFT" ]]; then
-  OUTPUT_FILE=$(cat "$LAST_DRAFT")
-fi
+OUTPUT_FILE=$(_load_last_file "$PR_DIR" "pr_current_draft.md")
 
 DRAFT_FILE="$PR_DIR/$OUTPUT_FILE"
 PAGER="${PAGER:-less}"
@@ -151,15 +154,14 @@ fi
 
 ```bash
 #!/bin/bash
+# Load helper libraries
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LIBS_DIR="$SCRIPT_DIR/_libs"
+. "$LIBS_DIR/idd-session.lib.sh"
+
 REPO_ROOT=$(git rev-parse --show-toplevel)
 PR_DIR="$REPO_ROOT/temp/idd/pr"
-LAST_DRAFT="$PR_DIR/.last_draft"
-OUTPUT_FILE="pr_current_draft.md"
-
-# Load last used filename if available
-if [[ -f "$LAST_DRAFT" ]]; then
-  OUTPUT_FILE=$(cat "$LAST_DRAFT")
-fi
+OUTPUT_FILE=$(_load_last_file "$PR_DIR" "pr_current_draft.md")
 
 DRAFT_FILE="$PR_DIR/$OUTPUT_FILE"
 EDITOR="${EDITOR:-code}"
@@ -178,15 +180,14 @@ fi
 
 ```bash
 #!/bin/bash
+# Load helper libraries
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LIBS_DIR="$SCRIPT_DIR/_libs"
+. "$LIBS_DIR/idd-session.lib.sh"
+
 REPO_ROOT=$(git rev-parse --show-toplevel)
 PR_DIR="$REPO_ROOT/temp/idd/pr"
-LAST_DRAFT="$PR_DIR/.last_draft"
-OUTPUT_FILE="pr_current_draft.md"
-
-# Load last used filename if available
-if [[ -f "$LAST_DRAFT" ]]; then
-  OUTPUT_FILE=$(cat "$LAST_DRAFT")
-fi
+OUTPUT_FILE=$(_load_last_file "$PR_DIR" "pr_current_draft.md")
 
 DRAFT_FILE="$PR_DIR/$OUTPUT_FILE"
 
