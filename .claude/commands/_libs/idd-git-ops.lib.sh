@@ -25,9 +25,9 @@ source "$SCRIPT_DIR/io-utils.lib.sh"
 # @param $2 本文ファイルパス
 # @return Issue URL (標準出力), 終了コード 0=成功/1=失敗
 # @example
-#   NEW_URL=$(gh_issue_create "$TITLE" "$BODY_FILE")
+#   NEW_URL=$(_gh_issue_create "$TITLE" "$BODY_FILE")
 #   ISSUE_NUM=$(echo "$NEW_URL" | sed 's/.*\/issues\///')
-gh_issue_create() {
+_gh_issue_create() {
   local title="$1"
   local body_file="$2"
 
@@ -61,8 +61,8 @@ gh_issue_create() {
 # @param $3 本文ファイルパス
 # @return 0=成功, 1=失敗
 # @example
-#   gh_issue_update "$ISSUE_NUM" "$TITLE" "$BODY_FILE"
-gh_issue_update() {
+#   _gh_issue_update "$ISSUE_NUM" "$TITLE" "$BODY_FILE"
+_gh_issue_update() {
   local issue_num="$1"
   local title="$2"
   local body_file="$3"
@@ -96,9 +96,9 @@ gh_issue_update() {
 # @param $3 ベースブランチ (オプション、デフォルト: main)
 # @return PR URL (標準出力), 終了コード 0=成功/1=失敗
 # @example
-#   PR_URL=$(gh_pr_create "$TITLE" "$BODY_FILE")
-#   PR_URL=$(gh_pr_create "$TITLE" "$BODY_FILE" "develop")
-gh_pr_create() {
+#   PR_URL=$(_gh_pr_create "$TITLE" "$BODY_FILE")
+#   PR_URL=$(_gh_pr_create "$TITLE" "$BODY_FILE" "develop")
+_gh_pr_create() {
   local title="$1"
   local body_file="$2"
   local base="${3:-main}"
@@ -131,8 +131,8 @@ gh_pr_create() {
 # @param $1 メッセージファイルパス
 # @return 0=成功, 1=失敗
 # @example
-#   git_commit_with_message "$MSG_FILE" && echo "✅ Committed"
-git_commit_with_message() {
+#   _git_commit_with_message "$MSG_FILE" && echo "✅ Committed"
+_git_commit_with_message() {
   local message_file="$1"
 
   if [ -z "$message_file" ]; then
@@ -168,8 +168,8 @@ git_commit_with_message() {
 # @param $1 GitHub Issue URL
 # @return Issue番号
 # @example
-#   ISSUE_NUM=$(extract_issue_number_from_url "$NEW_URL")
-extract_issue_number_from_url() {
+#   ISSUE_NUM=$(_extract_issue_number_from_url "$NEW_URL")
+_extract_issue_number_from_url() {
   local url="$1"
   echo "$url" | sed 's/.*\/issues\///'
 }
