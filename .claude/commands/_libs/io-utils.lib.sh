@@ -5,7 +5,7 @@
 # I/O操作用のヘルパー関数を提供します。
 #
 # @file io-utils.lib.sh
-# @version 1.1.0
+# @version 1.0.0
 # @license MIT
 
 ##

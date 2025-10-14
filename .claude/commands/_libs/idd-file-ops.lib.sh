@@ -20,8 +20,8 @@ source "$SCRIPT_DIR/io-utils.lib.sh"
 # @param $2 エラーメッセージ
 # @return 0=ファイル存在, 1=ファイルなし
 # @example
-#   require_file "$MSG_FILE" "No commit message found. Run '/idd-commit-message new' first."
-require_file() {
+#   _require_file "$MSG_FILE" "No commit message found. Run '/idd-commit-message new' first."
+_require_file() {
   local file_path="$1"
   local error_msg="$2"
 
@@ -39,9 +39,9 @@ require_file() {
 # @param $1 ファイルパス
 # @return タイトル文字列 (H1マーカーなし)
 # @example
-#   TITLE=$(extract_title "$ISSUE_FILE")
+#   TITLE=$(_extract_title "$ISSUE_FILE")
 #   echo "$TITLE"  # → "Feature request title"
-extract_title() {
+_extract_title() {
   local file_path="$1"
 
   if [ ! -f "$file_path" ]; then
@@ -58,9 +58,9 @@ extract_title() {
 # @param $2 ページャ (オプション、デフォルト: $PAGER または less)
 # @return 0=成功, 1=失敗
 # @example
-#   view_file "$DRAFT_FILE"
-#   view_file "$ISSUE_FILE" "cat"
-view_file() {
+#   _view_file "$DRAFT_FILE"
+#   _view_file "$ISSUE_FILE" "cat"
+_view_file() {
   local file_path="$1"
   local pager="${2:-${PAGER:-less}}"
 
@@ -79,9 +79,9 @@ view_file() {
 # @param $2 エディタ (オプション、デフォルト: $EDITOR または code)
 # @return 0=成功, 1=失敗
 # @example
-#   edit_file "$MSG_FILE"
-#   edit_file "$ISSUE_FILE" "vim"
-edit_file() {
+#   _edit_file "$MSG_FILE"
+#   _edit_file "$ISSUE_FILE" "vim"
+_edit_file() {
   local file_path="$1"
   local editor="${2:-${EDITOR:-vim}}"
 
@@ -100,8 +100,8 @@ edit_file() {
 # @param $1 ファイルパス
 # @return タイムスタンプ文字列
 # @example
-#   MODIFIED=$(get_file_timestamp "$ISSUE_FILE")
-get_file_timestamp() {
+#   MODIFIED=$(_get_file_timestamp "$ISSUE_FILE")
+_get_file_timestamp() {
   local file_path="$1"
 
   if [ ! -f "$file_path" ]; then
