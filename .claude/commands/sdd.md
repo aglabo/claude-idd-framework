@@ -590,11 +590,12 @@ echo ""
 
 ```bash
 #!/bin/bash
-# BDD implementation phase
+# BDD implementation phase with temp/todo.md progress tracking
 
 # セッション読み込み
 REPO_ROOT=$(git rev-parse --show-toplevel)
 SESSION_FILE="$REPO_ROOT/docs/.cc-sdd/.last-session"
+TODO_FILE="$REPO_ROOT/temp/todo.md"
 
 if ! load_session; then
   exit 1
@@ -617,15 +618,79 @@ else
 fi
 
 echo ""
+
+# temp/todo.md の初期化
+mkdir -p "$REPO_ROOT/temp"
+
+if [ ! -f "$TODO_FILE" ]; then
+  echo "📋 Initializing temp/todo.md..."
+  cat > "$TODO_FILE" << 'EOF'
+# BDD Implementation TODO
+
+## Progress Tracking
+
+This file tracks BDD implementation progress for the current coding session.
+Each TODO represents a single test case following the Red-Green-Refactor cycle.
+
+## Task Breakdown
+
+Tasks are broken down to the unit test level (individual test cases).
+Each entry follows this format:
+
+```
+- [ ] T{group}-{task}-{step}: {description}
+  - Status: pending | in_progress | completed
+  - Test file: {file path}
+  - Test case: {Given/When/Then description}
+  - Expected result: {verification criteria}
+```
+
+## Current Session
+
+EOF
+  echo "✅ Created temp/todo.md"
+else
+  echo "📋 Using existing temp/todo.md"
+fi
+
+echo ""
 echo "🚀 Launching BDD coder agent..."
 echo ""
 echo "📋 Agent will follow:"
 echo "  - Strict Red-Green-Refactor cycle"
 echo "  - 1 message = 1 test principle"
-echo "  - BDD hierarchy from temp/todo.md"
+echo "  - Task breakdown from tasks.md"
+echo "  - Progress tracking in temp/todo.md"
+echo ""
+echo "📝 temp/todo.md requirements:"
+echo "  - Each TODO = 1 test case (unit test minimum unit)"
+echo "  - Breakdown to individual Given/When/Then assertions"
+echo "  - Track status: pending → in_progress → completed"
+echo "  - Sync with TodoWrite tool after each test"
+echo "  - Record test file path and test case description"
+echo ""
+echo "🔄 BDD workflow with todo.md:"
+echo "  1. Read tasks.md → Break down to test cases → Write to temp/todo.md"
+echo "  2. Pick first pending test → Mark as in_progress"
+echo "  3. RED: Write failing test"
+echo "  4. GREEN: Implement minimal code to pass"
+echo "  5. REFACTOR: Improve code while keeping tests green"
+echo "  6. Mark test as completed in temp/todo.md"
+echo "  7. Sync with TodoWrite tool"
+echo "  8. Repeat steps 2-7 for next test"
 echo ""
 
-# Note: Claude will invoke Task tool with typescript-bdd-coder agent
+# Note: Claude will invoke Task tool with bdd-coder agent
+# Agent must:
+# 1. Read tasks.md and break down Implementation/Verification items into test cases
+# 2. Write detailed test breakdown to temp/todo.md with task IDs
+# 3. Use TodoWrite tool to track overall progress
+# 4. Keep temp/todo.md and TodoWrite in sync throughout implementation
+# 5. Each test case must have:
+#    - Task ID (T{group}-{task}-{step})
+#    - Test file path
+#    - Given/When/Then description
+#    - Expected result (assertion criteria)
 ```
 
 ### Subcommand: commit
