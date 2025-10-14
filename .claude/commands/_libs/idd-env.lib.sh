@@ -18,9 +18,9 @@ source "$SCRIPT_DIR/io-utils.lib.sh"
 #
 # @global REPO_ROOT
 # @example
-#   setup_repo_env
+#   _setup_repo_env
 #   echo "Repository root: $REPO_ROOT"
-setup_repo_env() {
+_setup_repo_env() {
   REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
 
   if [ -z "$REPO_ROOT" ]; then
@@ -37,13 +37,13 @@ setup_repo_env() {
 # @param $1 サブディレクトリパス (オプション、例: "idd/issues")
 # @return tempディレクトリの絶対パス
 # @example
-#   TEMP_DIR=$(get_temp_dir "idd/issues")
+#   TEMP_DIR=$(_get_temp_dir "idd/issues")
 #   echo "$TEMP_DIR"  # → /path/to/repo/temp/idd/issues
-get_temp_dir() {
+_get_temp_dir() {
   local subdir="${1:-}"
 
   if [ -z "$REPO_ROOT" ]; then
-    setup_repo_env || return 1
+    _setup_repo_env || return 1
   fi
 
   if [ -n "$subdir" ]; then
@@ -59,8 +59,8 @@ get_temp_dir() {
 # @param $1 作成するディレクトリパス
 # @return 0=成功, 1=失敗
 # @example
-#   ensure_dir "$REPO_ROOT/temp/idd/issues"
-ensure_dir() {
+#   _ensure_dir "$REPO_ROOT/temp/idd/issues"
+_ensure_dir() {
   local dir_path="$1"
 
   if [ -z "$dir_path" ]; then
