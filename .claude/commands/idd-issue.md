@@ -784,6 +784,7 @@ save_issue_session() {
     LAST_ISSUE_TYPE "$issue_type"
     LAST_COMMAND "$command"
     LAST_BRANCH_NAME "$branch_name"
+    __LAST_DRAFT_FILE__ "$filename"
   )
 
   _save_session "$SESSION_FILE" "${kv_pairs[@]}"
