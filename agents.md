@@ -4,11 +4,12 @@ header:
   - "@(#)": CLAUDEエージェント運用ガイド
 title: claude-idd-framework
 description: CLAUDEエージェントが作業を開始する前後に参照すべき資料と必須手順をまとめたチェックリスト
-version: 1.0.0
+version: 1.1.0
 created: 2025-10-12
 authors:
   - atsushifx
 changes:
+  - 2025-10-14: merge-json.sh追加、logger.lib.sh更新、最新プロジェクト状況を反映
   - 2025-10-12: CLAUDE.mdとメモリ資料を反映してチェックリストを刷新
 copyright:
   - Copyright (c) 2025 atsushifx <https://github.com/atsushifx>
@@ -42,7 +43,7 @@ copyright:
 - `xcp_symbol_map.md`: `scripts/xcp.sh`のシンボル構造を確認し、関連タスクの影響範囲を把握する。
 
 ## .lsmcp/memoriesの活用
-- `project_overview.md`: プロジェクト全体像と主要ドキュメントの配置を理解する。
+- `project_overview.md`: プロジェクト全体像と主要ドキュメントの配置を理解する。最新の参照実装 (xcp.sh完成、merge-json.sh新規追加) を確認する。
 - `xcp_implementation_status.md`: `scripts/xcp.sh`のタスク進行状況、テストカバレッジ、直近の更新内容を確認する。
 - 必要に応じてMCPの検索機能で関連仕様を再確認し、過去のワークフローと整合性を取る。
 
@@ -64,3 +65,24 @@ copyright:
 - 作成・更新した内容が`CLAUDE.md`と各メモリの方針に一致していることを確認し、差異がある場合は理由を明記する。
 - コミット前にGitフックの実行結果を確認し、問題があれば修正してから再実行する。
 - 必要に応じて追加のメモリ更新やドキュメント追記を行い、次の作業者が参照できる状態に整える。
+
+## 最新のプロジェクト状況 (2025-10-14)
+
+### 参照実装の状況
+- **xcp.sh**: ✅ COMPLETE (T1-T10完了、662行、テスト148例100%成功)
+- **merge-json.sh**: 🆕 NEW (213行、JSON浅いマージユーティリティ、jq依存)
+- **logger.lib.sh**: UPDATED (228行、error_print関数追加)
+
+### 最新機能
+- `error_print()`: logger.lib.shに追加されたstderr出力ユーティリティ
+  - 用途: merge-json.sh、prepare-commit-msg.shでエラーメッセージ出力
+  - 設計: error_print (単純出力) と log_error (追跡付き) の責務分離
+
+### テスト構成
+- `unit/`: xcp-utils, logger.lib, merge-json 🆕, prepare-commit-msg-output
+- `functional/`: xcp-validation, xcp-backup, xcp-copy-helpers
+- `integration/`: xcp-copy, prepare-commit-msg-* (3ファイル)
+- `e2e/`: xcp-main, prepare-commit-msg-codex
+
+### 現在のブランチ
+- feat-18/scripts/two-json-merge (clean状態)
