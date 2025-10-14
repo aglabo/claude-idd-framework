@@ -26,17 +26,6 @@
 # https://opensource.org/licenses/MIT
 
 # =============================================================================
-# Dependencies
-# =============================================================================
-
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="${PROJECT_ROOT:-$(cd "$SCRIPT_DIR/../../.." && pwd)}"
-
-# Source idd-session.lib.sh for _save_session function
-# shellcheck disable=SC1091
-. "$PROJECT_ROOT/.claude/commands/_libs/idd-session.lib.sh"
-
-# =============================================================================
 # Environment Setup Functions
 # =============================================================================
 
@@ -156,78 +145,4 @@ reset_for_each_test() {
   if [[ -n "${ISSUES_DIR:-}" ]]; then
     mkdir -p "$ISSUES_DIR"
   fi
-}
-
-# =============================================================================
-# Session File Creation Helpers
-# =============================================================================
-
-##
-# @description Create .last.session file with standard fields
-# @arg $1 string Session file path
-# @arg $2 string (optional) LAST_BRANCH_NAME value (omit to exclude field)
-# @global None
-# @exitcode 0 Always successful
-# @example
-#   create_test_last_session "$TEST_SESSION_FILE"
-#   create_test_last_session "$TEST_SESSION_FILE" "feat-27/test"
-create_test_last_session() {
-  local session_file="$1"
-  local branch_name="${2:-}"
-
-  # Build session data as associative array
-  declare -A session_data=(
-    [LAST_ISSUE_FILE]="issue-027-add-feature.md"
-    [LAST_ISSUE_NUMBER]="027"
-    [LAST_COMMAND]="new"
-    [LAST_ISSUE_TITLE]="Add new feature"
-    [LAST_ISSUE_TYPE]="feature"
-    [LAST_COMMIT_TYPE]="feat"
-    [LAST_BRANCH_TYPE]="feat"
-  )
-
-  # Add LAST_BRANCH_NAME if provided
-  if [[ -n "$branch_name" ]]; then
-    session_data[LAST_BRANCH_NAME]="$branch_name"
-  fi
-
-  # Use _save_session with fixed timestamp for reproducible tests
-  _save_session "$session_file" session_data "2025-10-26T10:00:00+09:00"
-}
-
-##
-# @description Create .branch.session file
-# @arg $1 string Session file path
-# @arg $2 string suggested_branch value
-# @arg $3 string (optional) domain value (default: "test")
-# @arg $4 string (optional) base_branch value (default: "main")
-# @global None
-# @exitcode 0 Always successful
-# @example
-#   create_test_branch_session "$TEST_SESSION_FILE" "feat-27/test"
-#   create_test_branch_session "$TEST_SESSION_FILE" "feat-27/custom" "custom-domain" "develop"
-create_test_branch_session() {
-  local session_file="$1"
-  local suggested_branch="$2"
-  local domain="${3:-test}"
-  local base_branch="${4:-main}"
-  local issue_number
-
-  # Extract issue number from suggested_branch (e.g., "feat-27/test" -> "27")
-  if [[ "$suggested_branch" =~ -([0-9]+)/ ]]; then
-    issue_number="${BASH_REMATCH[1]}"
-  else
-    issue_number="27"  # Default fallback
-  fi
-
-  # Build session data as associative array (matching save_branch_session format)
-  declare -A session_data=(
-    [suggested_branch]="$suggested_branch"
-    [domain]="$domain"
-    [base_branch]="$base_branch"
-    [issue_number]="$issue_number"
-  )
-
-  # Use _save_session with fixed timestamp for reproducible tests
-  _save_session "$session_file" session_data "2025-10-26T14:00:00+09:00"
 }

@@ -138,6 +138,65 @@ mock_codex_mcp() {
   return 1
 }
 
+##
+# @brief Detect domain from issue title (coordinator function)
+# @description Determines domain using priority-based strategy:
+#   1. DOMAIN variable (--domain option, highest priority)
+#   2. Codex-MCP inference (unless no_codex="no_codex")
+#   3. Issue type mapping (fallback)
+# @param $1 Title string
+# @param $2 Issue type (default: "feature")
+# @param $3 no_codex flag ("no_codex" to disable Codex, empty to enable)
+# @return 0 on success
+# @stdout Domain string
+# @example
+#   domain=$(detect_domain "Add /idd-issue command" "feature")
+#   domain=$(detect_domain "Fix bug" "bug" "no_codex")
+##
+detect_domain() {
+  local title="$1"
+  local issue_type="${2:-feature}"
+  local no_codex="${3:-}"
+
+  # Priority 1: --domain option override
+  if [ -n "${DOMAIN:-}" ]; then
+    echo "$DOMAIN"
+    return 0
+  fi
+
+  # Priority 2: Codex-MCP inference
+  if [ "$no_codex" != "no_codex" ]; then
+    local domain
+    if domain=$(_get_domain_use_codex "$title" "$issue_type"); then
+      echo "$domain"
+      return 0
+    fi
+  fi
+
+  # Priority 3: Map issue_type to default domain (fallback)
+  case "$issue_type" in
+    bug)
+      echo "bugfix"
+      ;;
+    feature)
+      echo "feature"
+      ;;
+    enhancement)
+      echo "enhancement"
+      ;;
+    task)
+      echo "task"
+      ;;
+    *)
+      # Fallback to issue_type as-is
+      echo "$issue_type"
+      ;;
+  esac
+
+  # No title found - simulate failure
+  return 1
+}
+
 # =============================================================================
 # Mock Command Alias
 # =============================================================================
@@ -156,4 +215,61 @@ claude() {
     # Fallback to actual claude command (if needed)
     command claude "$@"
   fi
+}
+
+##
+# @brief Generate Git branch name from issue information
+# @description Constructs branch name in format: {type}-{number}/{domain}/{slug}
+# @param $1 Branch type (e.g., "feat", "fix", "docs")
+# @param $2 Issue number (e.g., "27" or "new")
+# @param $3 Domain (e.g., "claude-commands", "scripts")
+# @param $4 Issue title (will be converted to slug)
+# @return 0 on success
+# @stdout Branch name (e.g., "feat-27/claude-commands/add-branch-command")
+# @example
+#   branch=$(generate_branch_name "feat" "27" "claude-commands" "Add branch command")
+#   echo "$branch"  # "feat-27/claude-commands/add-branch-command"
+##
+generate_branch_name() {
+  local branch_type="$1"
+  local issue_number="$2"
+  local domain="$3"
+  local title="$4"
+
+  # Generate slug from title using filename-utils.lib.sh
+  local slug
+  slug=$(generate_slug "$title")
+
+  # Construct branch name: {type}-{number}/{domain}/{slug}
+  echo "${branch_type}-${issue_number}/${domain}/${slug}"
+}
+
+# =============================================================================
+# T5: Base Branch Determination
+# =============================================================================
+
+##
+# @brief Determine base branch for new branch creation
+# @description Returns --base option if specified, otherwise current branch
+# @param $1 Current branch name
+# @param $2 BASE_BRANCH override (optional, from --base option)
+# @return 0 on success
+# @stdout Base branch name
+# @example
+#   base=$(determine_base_branch "main" "")
+#   # Returns: "main"
+#   base=$(determine_base_branch "main" "develop")
+#   # Returns: "develop"
+##
+determine_base_branch() {
+  local current_branch="$1"
+  local base_override="${2:-}"
+
+  if [ -n "$base_override" ]; then
+    echo "$base_override"
+  else
+    echo "$current_branch"
+  fi
+
+  return 0
 }
