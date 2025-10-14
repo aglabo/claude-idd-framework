@@ -55,15 +55,30 @@ docs/
     └── 12-shell-script-development.md     # Shell script BDD patterns
 
 scripts/                  # Shell script implementations
-├── xcp.sh                        # eXtended CoPy utility (main project)
-├── libs/logger.lib.sh           # Logging library with error tracking
-├── merge-mcp.sh                 # MCP configuration merge utility
+├── xcp.sh                        # eXtended CoPy utility (main project) ✅ COMPLETE
+├── libs/                         # Shared libraries
+│   ├── logger.lib.sh            # Structured logging library (log_info, log_error, etc.)
+│   └── io-utils.lib.sh          # I/O utilities (error_print) 🆕 NEW
+├── merge-json.sh                # JSON merge utility 🆕 NEW (2025-10-14)
 ├── prepare-commit-msg.sh        # Git hook for commit message generation
 ├── setup-idd.sh                 # IDD framework setup script
-├── __tests__/                   # shellspec test files
-│   ├── xcp.spec.sh              # BDD tests for xcp.sh
-│   ├── logger.lib.spec.sh       # Tests for logger library
-│   └── prepare-commit-msg.spec.sh  # Tests for commit hook
+├── __tests__/                   # shellspec test files (modular structure)
+│   ├── unit/                    # Unit tests
+│   │   ├── xcp-utils.spec.sh
+│   │   ├── logger.lib.spec.sh
+│   │   ├── io-utils.lib.spec.sh     # 🆕 NEW
+│   │   ├── merge-json.unit.spec.sh  # 🆕 NEW
+│   │   └── prepare-commit-msg-output.unit.spec.sh
+│   ├── functional/              # Functional tests
+│   │   ├── xcp-validation.functional.spec.sh
+│   │   ├── xcp-backup.functional.spec.sh
+│   │   └── xcp-copy-helpers.functional.spec.sh
+│   ├── integration/             # Integration tests
+│   │   ├── xcp-copy.integration.spec.sh
+│   │   └── prepare-commit-msg-*.integration.spec.sh (3 files)
+│   └── e2e/                     # E2E tests
+│       ├── xcp-main.e2e.spec.sh
+│       └── prepare-commit-msg-codex.e2e.spec.sh
 └── specs/spec_helper.sh         # shellspec test helpers
 
 configs/                  # Configuration files (reference only)
@@ -338,9 +353,9 @@ For developing shell scripts (like `xcp.sh`), use the **SDD (Spec-Driven Develop
 - **Quality gates**: Run `shellcheck` and `shellspec` before committing
 - **MCP tools**: Use serena-mcp/lsmcp to understand existing code patterns
 
-#### Reference Implementation: xcp.sh
+#### Reference Implementations
 
-- **Project**: `scripts/xcp.sh` (eXtended CoPy utility)
+**xcp.sh** (eXtended CoPy utility)
 - **Status**: ✅ **100% COMPLETE - PRODUCTION READY** (T1-T10 all implemented and tested)
 - **Test Coverage**: 148 examples, 148 passing (100% success rate), 0 failures, 6 skipped (Windows)
 - **Implementation**: 662 lines (main script), 1687 lines (tests), 20+ functions
@@ -364,6 +379,34 @@ For developing shell scripts (like `xcp.sh`), use the **SDD (Spec-Driven Develop
   - Early error return pattern throughout
 - **Reference**: See `docs/.cc-sdd/scripts/xcp/` for requirements, specs, and tasks
 - **Production Ready**: Fully documented with shdoc headers, shellcheck clean, ready for deployment
+
+**merge-json.sh** (JSON merge utility) - 🆕 NEW (2025-10-14)
+- **Status**: Recently implemented, following BDD principles
+- **Implementation**: 213 lines
+- **Purpose**: Merge two JSON configuration files with shallow merge strategy
+- **Core Features**:
+  - Shallow merge (top-level keys only)
+  - Last-wins strategy for key conflicts
+  - Array concatenation (file1 + file2)
+  - Nested objects replaced entirely (no deep merge)
+  - jq dependency checking with error_print
+- **Exit codes**: 0 (success), 1 (invalid args), 2 (file not found), 3 (JSON parse error), 4 (not object), 5 (write error)
+- **Use case**: Merging MCP configuration files
+- **Integration**: Uses `logger.lib.sh` error_print for error messages
+- **Test Coverage**: Unit tests in `merge-json.unit.spec.sh`
+
+**logger.lib.sh** (Structured logging library)
+- **Lines**: 201 lines
+- **Purpose**: Structured logging with timestamps, error tracking, and flag control
+- **Features**: Multiple log levels (INFO, VERBOSE, ERROR, DRY-RUN), error counting/retrieval, quiet/verbose modes
+- **Usage**: xcp.sh for comprehensive logging needs
+
+**io-utils.lib.sh** (I/O utilities library) - 🆕 NEW (2025-10-14)
+- **Lines**: 61 lines
+- **Purpose**: Lightweight I/O utilities without logging overhead
+- **Function**: `error_print()` - Simple stderr output utility (supports heredoc and arguments)
+- **Design**: Responsibility separation - simple I/O vs structured logging
+- **Usage**: merge-json.sh, prepare-commit-msg.sh for basic error messages
 
 ## Troubleshooting
 
