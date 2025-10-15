@@ -105,14 +105,56 @@ This repository uses **lefthook** for Git hooks:
 
 ### 1. MCP Tools are Mandatory
 
-**ALL development tasks MUST use MCP tools (lsmcp, serena-mcp) for:**
+**ALL development tasks MUST use MCP tools (lsmcp, serena-mcp, codex-mcp) for:**
 
 - Understanding project structure and existing code patterns
 - Searching symbols, files, and patterns
 - Analyzing impact of changes before implementation
 - Verifying code integrity after changes
+- **Token-efficient code navigation and editing**
 
 Before editing ANY file, use MCP tools to understand existing patterns and conventions.
+
+#### Token Reduction Best Practices
+
+MCP tools enable significant token savings through targeted operations:
+
+**Avoid Full File Reads**
+
+- Use `get_symbols_overview` instead of reading entire files
+- Use `find_symbol` with `include_body=true` for specific symbols only
+- Use `search_for_pattern` with context lines instead of grepping full files
+
+**Progressive Information Gathering**
+
+1. Start with high-level overview (`list_dir`, `get_project_overview`)
+2. Narrow down with symbol search (`search_symbols`, `find_symbol`)
+3. Read specific symbols only when necessary (`get_symbol_details`)
+
+**Symbol-Based Editing**
+
+- Use `replace_symbol_body` instead of Read + Edit workflow
+- Use `insert_after_symbol` / `insert_before_symbol` for targeted insertions
+- Use `replace_range` or `replace_regex` for precise edits
+
+**Delegate Complex Tasks**
+
+- Use `codex-mcp` for multi-step workflows that would consume many tokens
+- Offload exploration and analysis tasks to specialized agents
+- Let Codex handle iterative refinement processes
+
+**Example Workflow**
+
+```bash
+# BAD: Token-heavy approach
+Read entire_file.sh              # 500 lines × tokens
+Edit entire_file.sh              # Full file content again
+
+# GOOD: Token-efficient approach
+get_symbols_overview(entire_file.sh)  # Only symbol list
+find_symbol("target_function")        # Only the function body
+replace_symbol_body("target_function", new_body)  # Direct replacement
+```
 
 ### 2. Documentation Standards
 
@@ -244,8 +286,9 @@ This framework assumes and requires MCP (Model Context Protocol) tools:
 
 - **lsmcp**: Language Server MCP for symbol search, LSP operations, code navigation
 - **serena-mcp**: Structured code analysis, symbol indexing, pattern search
+- **codex-mcp**: Autonomous coding agent for complex multi-step workflows
 
-All development workflows are designed around MCP tool usage for understanding existing code before making changes.
+All development workflows are designed around MCP tool usage for understanding existing code before making changes. Use codex-mcp to delegate token-intensive tasks that require multiple iterations or extensive exploration.
 
 ### Quality-First Approach
 
