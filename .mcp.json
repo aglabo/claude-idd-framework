@@ -1,13 +1,5 @@
 {
   "mcpServers": {
-    "lsmcp": {
-      "type": "stdio",
-      "command": "lsmcp",
-      "args": [
-        "-p",
-        "typescript"
-      ]
-    },
     "serena-mcp": {
       "type": "stdio",
       "command": "uvx",
@@ -21,7 +13,11 @@
         "--project",
         "."
       ],
-      "env": {}
+      "disabled_tools": [
+        "think_about_collected_information",
+        "think_about_task_adherence",
+        "think_about_whether_you_are_done"
+      ]
     },
     "codex-mcp": {
       "type": "stdio",
