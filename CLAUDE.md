@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+> **CRITICAL NOTE**: All editing operations in this repository **MUST use MCP tools** (lsmcp, serena-mcp, codex-mcp) to minimize token consumption. **DO NOT use Read() + Edit() workflow** for documentation or code files. Use `get_symbols_overview()`, `search_for_pattern()`, and `replace_range()` instead. See "Mandatory MCP Usage for Documentation Editing" section below for detailed requirements. This rule is **NON-NEGOTIABLE** and must be followed for all file editing tasks.
+
 ## Repository Overview
 
 **claude-idd-framework** is a comprehensive development framework for AI coding agents (Claude Code). It provides unified development standards, writing rules, custom slash commands, and custom agents to enhance AI-assisted development workflows.
@@ -155,6 +157,39 @@ get_symbols_overview(entire_file.sh)  # Only symbol list
 find_symbol("target_function")        # Only the function body
 replace_symbol_body("target_function", new_body)  # Direct replacement
 ```
+
+#### Mandatory MCP Usage for Documentation Editing
+
+**CRITICAL RULE**: When editing documentation files (`.md` files in `.claude/commands/`, `docs/`, etc.), you **MUST** use MCP tools instead of Read/Edit:
+
+**Required workflow:**
+
+1. **Use `get_symbols_overview()`** or **`search_for_pattern()`** instead of `Read()` for initial inspection
+2. **Use `replace_range()`** or **serena-mcp editing tools** instead of `Read() + Edit()` workflow
+3. **Only use `Read()` as a last resort** when MCP tools cannot provide the needed information
+
+**Why this matters:**
+
+- Documentation files are often 200-400 lines
+- `Read() + Edit()` consumes 2× tokens for the same content
+- MCP tools provide targeted access with 70-80% token reduction
+
+**Example:**
+
+```bash
+# ❌ BAD: Token-heavy approach (do NOT do this)
+Read .claude/commands/idd/issue/list.md  # 327 lines, ~8000 tokens
+Edit .claude/commands/idd/issue/list.md  # Full file content again, ~8000 tokens
+# Total: ~16000 tokens
+
+# ✅ GOOD: Token-efficient approach (do this instead)
+get_symbols_overview(.claude/commands/idd/issue/list.md)  # Structure only, ~200 tokens
+search_for_pattern("subcommand_session", paths_include_glob="**/*.md", output_mode="content")  # ~500 tokens
+replace_range(.claude/commands/idd/issue/list.md, start_line=52, end_line=145, new_content="...")  # ~1000 tokens
+# Total: ~1700 tokens (89% reduction)
+```
+
+This rule ensures maximum token efficiency and faster response times. Violation of this rule will result in unnecessary token consumption and slower performance.
 
 ### 2. Documentation Standards
 
