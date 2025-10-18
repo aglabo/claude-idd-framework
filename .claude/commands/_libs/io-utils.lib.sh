@@ -38,3 +38,48 @@ error_print() {
     cat >&2
   fi
 }
+
+##
+# y/n/q 選択入力を取得
+#
+# ユーザーに y/n/q の選択を求め、正規化された値を返します。
+# - y/yes → "y" を返す
+# - n/no → "n" を返す
+# - q/quit → "q" を返す
+# - その他 → エラーメッセージを表示して再入力
+#
+# @param $1 プロンプトメッセージ (オプション、デフォルト: "選択してください (y/n/q): ")
+# @return 0 (成功)
+# @stdout "y", "n", "q" のいずれか
+# @example
+#   choice=$(get_choice)
+#   choice=$(get_choice "このタイトルでよろしいですか? (y/n/q): ")
+get_choice() {
+  local prompt="${1:-選択してください (y/n/q): }"
+  local choice
+
+  while true; do
+    read -r -p "$prompt" choice
+
+    # 小文字に変換
+    choice=$(echo "$choice" | tr '[:upper:]' '[:lower:]')
+
+    case "$choice" in
+      y|yes)
+        echo "y"
+        return 0
+        ;;
+      n|no)
+        echo "n"
+        return 0
+        ;;
+      q|quit)
+        echo "q"
+        return 0
+        ;;
+      *)
+        echo "エラー: y/yes, n/no, q/quit のいずれかを入力してください" >&2
+        ;;
+    esac
+  done
+}
