@@ -1,18 +1,19 @@
 ---
 # Claude Code 必須要素
 name: issue-generator
-description: JSON入力からGitHub Issue下書きを生成するエージェント。埋め込みBash関数でcommit種別・issue種別テーブルを作成し、CodexによるAI判定でtitle/summaryを深く分析。相応しさ評価でbranch種別を決定し、Codexにテンプレート内容を渡してMarkdown生成を委譲、JSON形式で結果を返す。Examples: <example>Context: JSON入力でIssue生成 user: '{"title": "ユーザー認証機能を追加したい", "summary": "メール+パスワードでログインできるようにしたい"}' assistant: "AI判定でcommit種別 feat、issue種別 feature を判定し、Codexに委譲してIssue下書きを生成します" <commentary>新機能追加をAIが文脈理解して判定、commit種別featを優先</commentary></example>
+description: title/issue種別/summaryからGitHub Issue下書きを生成するエージェント。呼び出し元で種別判定済みのため、テンプレート内容を取得してCodexにMarkdown生成を委譲し、Markdown下書きを返す。Examples: <example>Context: Issue種別が判定済みの入力でIssue生成 user: '{"title": "ユーザー認証機能を追加したい", "issue_type": "feature", "summary": "メール+パスワードでログインできるようにしたい"}' assistant: "feature テンプレートを読み込み、Codexに委譲してIssue下書きを生成します" <commentary>種別判定は呼び出し元で完了、エージェントは下書き生成に専念</commentary></example>
 tools: Bash, mcp__codex-mcp__codex
 model: inherit
 color: green
 
 # ユーザー管理ヘッダー
 title: issue-generator
-version: 3.0.0
+version: 4.0.0
 created: 2025-09-30
 authors:
   - atsushifx
 changes:
+  - 2025-10-19: v4.0.0 - 入力に issue_type を追加、AI判定ロジックを削除、出力を Markdown のみに変更
   - 2025-10-15: AI判定メソッド方式に再構成、Codexによる文脈理解判定を採用
   - 2025-10-15: JSON入出力形式に全面書き直し、commit種別優先・issue種別補助ロジック採用
   - 2025-10-02: エージェント名を issue-generator に統一
@@ -24,18 +25,15 @@ copyright:
 
 ## Agent Overview
 
-JSON入力からGitHub Issue下書きを自動生成するエージェント。LLMによる深い文脈理解でcommit種別・issue種別を判定し、Markdown下書きを生成。
+title/issue種別/summaryからGitHub Issue下書きを生成する専用エージェント。呼び出し元で種別判定が完了している前提で、テンプレート読み込みとMarkdown生成に専念。
 
 ### 核心機能
 
 1. **Bash関数埋め込み**: エージェント内に全Bash関数を定義、外部ファイル依存なし
-2. **動的コミット種別抽出**: `extract_commit_types` で `configs/commitlint.config.js` から14種類を動的取得
-3. **AI判定**: LLMがJSONテーブルとtitle/summaryを深く分析してcommit種別・issue種別・branch種別を判定
-4. **相応しさ評価**: AI判定結果にreasoning (判定理由) を含む
-5. **LLM委譲**: テンプレート内容をLLMに渡してMarkdown生成
-6. **JSON出力**: issue種別、branch種別、commit種別、reasoning、下書き内容を返す
-7. **ファイル出力**: output_path指定時は下書きを自動保存、ディレクトリ自動作成
-8. **モデル選択**: model指定でgpt-5 (デフォルト) やClaude (sonnetなど) を選択可能
+2. **テンプレート読み込み**: issue種別に対応するYAMLテンプレートを自動取得
+3. **Codex委譲**: テンプレート内容をCodexに渡してMarkdown生成
+4. **Markdown出力**: 生成された下書きをそのまま返す (JSON形式ではない)
+5. **モデル選択**: model指定でgpt-5 (デフォルト) やClaude (sonnetなど) を選択可能
 
 ### 入出力仕様
 
@@ -44,40 +42,42 @@ JSON入力からGitHub Issue下書きを自動生成するエージェント。L
 ```json
 {
   "title": "ユーザー認証機能を追加したい",
+  "issue_type": "feature",
   "summary": "メール+パスワードでログインできるようにしたいです。",
-  "model": "gpt-4o",
-  "output_path": "temp/issues/auth-feature.md"
+  "model": "gpt-4o"
 }
 ```
 
 **フィールド説明**:
 
 - `title`: Issue タイトル (必須)
+- `issue_type`: Issue種別 (必須、例: feature, bug, enhancement, task, release, open_topic)
 - `summary`: Issue サマリー (必須)
-- `model`: 使用するLLMモデル (オプショナル、デフォルト: gpt-5)
-- `output_path`: 下書き保存先ファイルパス (オプショナル)
+- `model`: 使用するLLMモデル (オプショナル、デフォルト: gpt-4o)
 
-#### 出力JSON
+#### 出力形式
 
-```json
-{
-  "commit_type": "feat",
-  "issue_type": "feature",
-  "branch_type": "feat",
-  "reasoning": "新機能追加要求のためcommit種別feat、issue種別feature、branch種別はcommit種別優先でfeat",
-  "draft": "# [Feature] ユーザー認証機能を追加したい\n\n...",
-  "saved_to": "/absolute/path/to/temp/issues/auth-feature.md"
-}
+Markdown形式の下書きテキストをそのまま返します (JSON形式ではありません)。
+
+```markdown
+# [Feature] ユーザー認証機能を追加したい
+
+## 概要
+
+メール+パスワードでログインできるようにしたいです。
+
+## 実装内容
+
+- ログインフォームの作成
+- 認証APIエンドポイントの実装
+- セッション管理機能の追加
+
+## 受け入れ条件
+
+- [ ] ユーザーがメールアドレスとパスワードでログインできる
+- [ ] ログイン後、セッションが維持される
+- [ ] ログアウト機能が正常に動作する
 ```
-
-**フィールド説明**:
-
-- `commit_type`: 判定されたcommit種別
-- `issue_type`: 判定されたissue種別
-- `branch_type`: 判定されたbranch種別
-- `reasoning`: 判定理由
-- `draft`: 生成されたMarkdown下書き
-- `saved_to`: 保存先絶対パス (`output_path`指定時のみ)
 
 ## アーキテクチャの特徴
 
@@ -85,44 +85,44 @@ JSON入力からGitHub Issue下書きを自動生成するエージェント。L
 
 エージェント内部にすべてのBash関数を定義し、外部ファイルへの依存を排除。単一ファイルで完結する構成により、ポータビリティと保守性を向上。
 
-### AI判定による動的type決定
+### 責任分離設計
 
-LLMが `title` と `summary` を深く分析して commit種別・issue種別・branch種別を判定。キーワードマッチングを超えた文脈理解により、複雑な要求にも柔軟に対応。
+種別判定は呼び出し元 (`/_helpers:_get-issue-types`) で実施済みの前提。エージェントはテンプレート読み込みとMarkdown生成に専念し、単一責任原則を遵守。
 
-### LLM委譲アーキテクチャ
+### Codex委譲アーキテクチャ
 
-Issue下書き生成はテンプレート内容をLLMに渡して委譲。型定義 (YAML) から実際のMarkdown生成までをLLMが担当し、テンプレート変更に自動追従。
+Issue下書き生成はテンプレート内容をCodexに渡して委譲。型定義 (YAML) から実際のMarkdown生成までをCodexが担当し、テンプレート変更に自動追従。
 
-### JSON入出力方式
+### シンプルな入出力
 
-すべての入出力をJSON形式で統一。CI/CDパイプライン、他ツール連携、自動化スクリプトから容易に利用可能。
+入力はJSON形式 (title, issue_type, summary)、出力は Markdown テキスト。呼び出し元での取り扱いが容易。
 
 ## Execution Flow
 
 ### 全体フロー
 
 ```text
-1. JSON入力解析 (title, summary 取得)
+1. JSON入力解析 (title, issue_type, summary 取得)
    ↓
-2. Bashツールで prepare_metadata 実行
-   → AI判定プロンプト生成
+2. Bashツールで get_template_content 実行
+   → テンプレート内容取得 (YAML)
    ↓
-3. Codexにプロンプト送信 (AI判定)
-   → JSON返却: {commit_type, issue_type, branch_type, reasoning}
+3. extract_template_fields でフィールド抽出
+   → JSON配列: [{"label":"💡 What's...","description":"...","placeholder":"..."},...]
    ↓
-4. Bashツールで get_template_content 実行
-   → テンプレート内容取得
+4. build_draft_generation_prompt でプロンプト構築
+   → fields情報を含むプロンプト生成
    ↓
-5. Codexにテンプレート内容を渡してMarkdown生成
+5. Codexにフィールド情報を渡してMarkdown生成
    ↓
-6. 最終JSON出力:
-   {
-     "commit_type": "...",
-     "issue_type": "...",
-     "branch_type": "...",
-     "reasoning": "...",
-     "draft": "# [Type] ..."
-   }
+6. Markdown下書きを出力:
+   # [Type] タイトル
+
+   ### 💡 What's the problem you're solving?
+   ...
+
+   ### ✨ Proposed solution
+   ...
 ```
 
 ### 処理詳細
@@ -131,77 +131,44 @@ Issue下書き生成はテンプレート内容をLLMに渡して委譲。型定
 
 #### ステップ1: JSON入力解析
 
-`parseInput` 関数でJSONを解析し、title, summary, outputPath, modelを抽出。
+`parseInput` 関数でJSONを解析し、title, issue_type, summary, modelを抽出。
 
-#### ステップ2: prepare_metadata 実行
-
-Bash関数 `prepare_metadata` を実行してAI判定用メタデータを生成。内部で以下を呼び出し:
-
-- `extract_commit_types`: commitlint.config.jsからcommit種別を動的抽出
-- `build_issue_types_table`: issue種別定義テーブルを生成
-- `build_ai_judgment_prompt`: AI判定プロンプトを構築
-
-**出力**: JSON形式のメタデータ (ai_judgment_prompt, commit_types, issue_types)
-
-#### ステップ3: Codex AI判定
-
-`call_llm_with_prompt` 関数でCodexにプロンプトを送信し、AI判定を実行。
-
-**出力**: JSON形式のAI判定結果 (commit_type, issue_type, branch_type, reasoning)
-
-#### ステップ4: テンプレート読み込み
+#### ステップ2: テンプレート読み込み
 
 Bash関数 `get_template_content` でissue種別に対応するテンプレートファイルを読み込み。
 
 **出力**: YAML形式のテンプレート内容
 
-#### ステップ5: 下書き生成プロンプト構築
+#### ステップ3: フィールド抽出
 
-Bash関数 `build_draft_generation_prompt` でMarkdown生成用プロンプトを構築。
+Bash関数 `extract_template_fields` でYAMLテンプレートから `type: textarea` のフィールドを抽出。
+
+**出力**: JSON配列形式のフィールド情報
+
+```json
+[
+  {
+    "label": "💡 What's the problem you're solving?",
+    "description": "Describe the background or problem that led to this request.",
+    "placeholder": "I am always frustrated when I need to..."
+  },
+  .
+  .
+  .
+]
+```
+
+#### ステップ4: 下書き生成プロンプト構築
+
+Bash関数 `build_draft_generation_prompt` でMarkdown生成用プロンプトを構築。フィールド情報を含むJSON形式のパラメータを生成。
 
 **出力**: Codexに渡すプロンプト文字列
 
-#### ステップ6: Codex下書き生成
+#### ステップ5: Codex下書き生成
 
 `call_llm_with_prompt` 関数でCodexにプロンプトを送信し、Markdown下書きを生成。
 
-**出力**: Markdown形式の下書き文字列
-
-#### ステップ7: ファイル保存
-
-`save_draft_to_file` 関数で下書きをファイルに保存 (output_path指定時のみ)。
-
-**出力**: 保存先の絶対パス (保存しなかった場合は空文字列)
-
-#### ステップ8: 最終出力構築
-
-`buildFinalOutput` 関数で最終的なJSON出力を構築。
-
-**出力**: commit_type, issue_type, branch_type, reasoning, draft, saved_to (オプショナル) を含むJSON
-
-## AI Judgment Details
-
-### プロンプト構造
-
-- コミット種別定義テーブル (14種類)
-- Issue種別定義テーブル (6種類)
-- 入力情報 (title, summary)
-- 判定ルール (commit種別優先、issue種別補助、相応しさ判定)
-- 出力形式指定 (JSON)
-
-### 判定ルール
-
-- **サマリー深層分析**: 「何を」作成・修正するかを重視し、文脈から真の目的を理解
-- **commit種別優先**: 第一優先でcommit種別を決定 (コミット履歴の一貫性維持)
-- **issue種別補助**: 第二優先でissue種別を決定 (Issue管理の観点)
-- **branch種別決定**: 基本はcommit種別を採用、相応しさ判定で切り替え
-
-### AI判定の利点
-
-- **文脈理解**: キーワードマッチングを超えた意味理解
-- **柔軟性**: 新しい表現パターンにも自動対応
-- **透明性**: reasoning フィールドで判定根拠を明示
-- **動的適応**: テーブル定義変更に自動追従
+**出力**: Markdown形式の下書き文字列（テンプレートのlabelをそのまま見出しとして使用）
 
 ## Available Templates
 
@@ -223,93 +190,103 @@ Bash関数 `build_draft_generation_prompt` でMarkdown生成用プロンプト�
 ```json
 {
   "title": "ログ出力機能を追加",
+  "issue_type": "feature",
   "summary": "デバッグ用にコンソールログを出力できるようにしたい"
 }
 ```
 
-**AI判定結果**:
+**出力** (Markdown):
 
-```json
-{
-  "commit_type": "feat",
-  "issue_type": "feature",
-  "branch_type": "feat",
-  "reasoning": "デバッグ用のログ出力機能を新規追加するため、commit種別feat、issue種別feature、branch種別はcommit種別優先でfeat"
-}
+```markdown
+# [Feature] ログ出力機能を追加
+
+## 概要
+
+デバッグ用にコンソールログを出力できるようにしたい
+
+## 実装内容
+
+- ログ出力関数の実装
+- ログレベル設定機能
+- フォーマッタの実装
+
+## 受け入れ条件
+
+- [ ] ログレベル（DEBUG, INFO, WARN, ERROR）を指定できる
+- [ ] タイムスタンプ付きでログが出力される
+- [ ] ログフォーマットがカスタマイズ可能
 ```
 
-**最終出力**:
-
-```json
-{
-  "commit_type": "feat",
-  "issue_type": "feature",
-  "branch_type": "feat",
-  "reasoning": "デバッグ用のログ出力機能を新規追加するため...",
-  "draft": "# [Feature] ログ出力機能を追加\n\n..."
-}
-```
-
-### 例2: ドキュメント改善
+### 例2: バグ報告
 
 **入力**:
 
 ```json
 {
-  "title": "READMEを改善する",
-  "summary": "インストール手順をより詳しく説明したい"
+  "title": "ログイン画面でエラーが発生する",
+  "issue_type": "bug",
+  "summary": "特定の文字を含むパスワードでログインに失敗する"
 }
 ```
 
-**AI判定結果**:
+**出力** (Markdown):
 
-```json
-{
-  "commit_type": "docs",
-  "issue_type": "enhancement",
-  "branch_type": "enhancement",
-  "reasoning": "ドキュメント更新だがREADMEの改善提案であるため、commit種別docs、issue種別enhancement、相応しさ判定でbranch種別enhancement"
-}
-```
+```markdown
+# [Bug] ログイン画面でエラーが発生する
 
-**最終出力**:
+## 問題の概要
 
-```json
-{
-  "commit_type": "docs",
-  "issue_type": "enhancement",
-  "branch_type": "enhancement",
-  "reasoning": "ドキュメント更新だがREADMEの改善提案であるため...",
-  "draft": "# [Enhancement] READMEを改善する\n\n..."
-}
+特定の文字を含むパスワードでログインに失敗する
+
+## 再現手順
+
+1. ログイン画面を開く
+2. 特殊文字を含むパスワードを入力
+3. ログインボタンをクリック
+
+## 期待される動作
+
+正常にログインできる
+
+## 実際の動作
+
+エラーメッセージが表示され、ログインに失敗する
+
+## 環境
+
+- ブラウザ: Chrome 120
+- OS: Windows 11
 ```
 
 ## Integration Guidelines
 
 ### 実行フロー
 
-メイン関数 `generateIssue` が8ステップを統合実行:
+メイン関数 `generateIssue` が4ステップを統合実行:
 
 1. JSON入力解析 (`parseInput`)
-2. AI判定用メタデータ準備 (`callPrepareMetadata` → Bash関数)
-3. LLM AI判定 (`callLLMForAIJudgment` → Codex/Claude)
-4. テンプレート読み込み (`callGetTemplateContent` → Bash関数)
-5. 下書き生成プロンプト構築 (`callBuildDraftPrompt` → Bash関数)
-6. Markdown下書き生成 (`callLLMForDraft` → Codex/Claude)
-7. ファイル保存 (`saveDraftIfNeeded` → Bash関数, output_path指定時のみ)
-8. 最終JSON出力構築 (`buildFinalOutput`)
+2. テンプレート読み込み (`callGetTemplateContent` → Bash関数)
+3. 下書き生成プロンプト構築 (`callBuildDraftPrompt` → Bash関数)
+4. Markdown下書き生成 (`callLLMForDraft` → Codex/Claude)
 
 詳細な関数実装は [Code Libraries](#code-libraries) セクションを参照。
 
+### 呼び出し元との連携
+
+このエージェントは `/_helpers:_get-issue-types` と連携して動作します:
+
+1. **呼び出し元**: `/_helpers:_get-issue-types` で種別判定を実施
+2. **エージェント**: 判定済みの `issue_type` を受け取り、Markdown生成に専念
+3. **責任分離**: 種別判定とMarkdown生成を明確に分離
+
 ## Technical Notes
 
-### AI判定方式の利点
+### 責任分離設計の利点
 
-1. 深い文脈理解: キーワードマッチングを超えた意味理解
-2. 柔軟性: 新しい表現パターンにも自動対応
-3. 透明性: reasoning フィールドで判定根拠を明示
-4. 動的適応: テーブル定義変更に自動追従
-5. 保守性: ルールをプロンプトで管理、コード修正不要
+1. 単一責任: エージェントはMarkdown生成のみに専念
+2. 保守性: 種別判定ロジックの変更がエージェントに影響しない
+3. テスタビリティ: 各コンポーネントを個別にテスト可能
+4. 再利用性: 種別判定ロジックを他のコマンドでも利用可能
 
 ### 実行要件
 
@@ -328,180 +305,7 @@ Bash関数 `build_draft_generation_prompt` でMarkdown生成用プロンプト�
 
 エージェント実行時にBashツールで読み込む関数群。
 
-#### 1. メタデータ生成関数
-
-##### extract_commit_types
-
-```bash
-##
-# @brief Extract commit types from commitlint config
-# @description Parses configs/commitlint.config.js and extracts commit type definitions as JSON array
-# @param $1 Config file path (default: configs/commitlint.config.js)
-# @return 0 on success, 1 on file not found
-# @stdout JSON array: [{"type":"feat","description":"New feature"},...]
-# @example
-#   commit_types=$(extract_commit_types)
-#   echo "$commit_types" | jq '.[0].type'
-##
-extract_commit_types() {
-  local config_file="${1:-configs/commitlint.config.js}"
-
-  awk '/type-enum.*\[/,/\]\]/' "$config_file" \
-    | grep -E "^\s*'[a-z]+'" \
-    | sed -E "s/\s*'([a-z]+)',?\s*\/\/\s*(.*)/{\n  \"type\": \"\1\",\n  \"description\": \"\2\"\n},/" \
-    | sed '$ s/,$//' \
-    | sed '1 i[' \
-    | sed '$ a]' \
-    | jq -c '.'
-}
-```
-
-##### build_issue_types_table
-
-```bash
-##
-# @brief Build issue types definition table
-# @description Creates a JSON array of issue type definitions with template mappings
-# @return 0 on success
-# @stdout JSON array: [{"type":"feature","description":"新機能追加要求","template":"feature_request.yml"},...]
-# @example
-#   issue_types=$(build_issue_types_table)
-#   echo "$issue_types" | jq -r '.[].type'
-##
-build_issue_types_table() {
-  jq -n -c '[
-    {
-      "type": "feature",
-      "description": "新機能追加要求",
-      "template": "feature_request.yml"
-    },
-    {
-      "type": "bug",
-      "description": "バグレポート",
-      "template": "bug_report.yml"
-    },
-    {
-      "type": "enhancement",
-      "description": "既存機能改善",
-      "template": "enhancement.yml"
-    },
-    {
-      "type": "task",
-      "description": "開発・メンテナンスタスク",
-      "template": "task.yml"
-    },
-    {
-      "type": "release",
-      "description": "リリース関連",
-      "template": "release.yml"
-    },
-    {
-      "type": "open_topic",
-      "description": "オープントピック",
-      "template": "open_topic.yml"
-    }
-  ]'
-}
-```
-
-##### build_ai_judgment_prompt
-
-```bash
-##
-# @brief Build AI judgment prompt for Codex
-# @description Constructs a prompt for LLM to judge commit type, issue type, and branch type
-# @param $1 Issue title
-# @param $2 Issue summary
-# @param $3 Commit types JSON array
-# @param $4 Issue types JSON array
-# @return 0 on success
-# @stdout Prompt text for AI judgment
-# @example
-#   prompt=$(build_ai_judgment_prompt "タイトル" "サマリー" "$commit_types" "$issue_types")
-##
-build_ai_judgment_prompt() {
-  local title="$1"
-  local summary="$2"
-  local commit_types="$3"
-  local issue_types="$4"
-
-  cat <<EOF
-以下の情報から、最適なcommit種別、issue種別、branch種別を判定してJSON形式で返してください。
-
-【コミット種別定義】
-${commit_types}
-
-【Issue種別定義】
-${issue_types}
-
-【入力】
-- タイトル: "${title}"
-- サマリー: "${summary}"
-
-【判定ルール】
-1. サマリーの内容を深く分析してcommit種別を判定 (第一優先)
-   - 「何を」作成・修正するかを重視
-   - 例: "ドキュメント作成" → docs、"機能追加" → feat
-2. サマリーの内容からissue種別を判定 (第二優先)
-   - バグ報告、機能追加、改善提案、タスクのいずれか
-3. branch種別決定:
-   - 基本: commit種別を採用
-   - 相応しさ判定で切り替え:
-     * docs + 改善文脈 → enhancement
-     * test + bug文脈 → bug
-     * refactor + enhancement文脈 → enhancement
-
-【出力形式】
-必ずJSON形式で返してください:
-{
-  "commit_type": "選択したcommit種別",
-  "issue_type": "選択したissue種別",
-  "branch_type": "最終決定したbranch種別",
-  "reasoning": "判定理由の簡潔な説明 (日本語)"
-}
-EOF
-}
-```
-
-##### prepare_metadata
-
-```bash
-##
-# @brief Prepare metadata for AI judgment
-# @description Orchestrates table creation and prompt building for AI judgment
-# @param $1 Issue title
-# @param $2 Issue summary
-# @return 0 on success
-# @stdout JSON object: {"ai_judgment_prompt":"...","commit_types":"...","issue_types":"..."}
-# @example
-#   metadata=$(prepare_metadata "タイトル" "サマリー")
-#   echo "$metadata" | jq -r '.ai_judgment_prompt'
-##
-prepare_metadata() {
-  local title="$1"
-  local summary="$2"
-
-  # テーブル作成
-  local commit_types=$(extract_commit_types)
-  local issue_types=$(build_issue_types_table)
-
-  # AI判定プロンプト構築
-  local prompt=$(build_ai_judgment_prompt "$title" "$summary" "$commit_types" "$issue_types")
-
-  # プロンプトをJSON形式で出力
-  jq -n \
-    --arg prompt "$prompt" \
-    --arg commit_types "$commit_types" \
-    --arg issue_types "$issue_types" \
-    '{
-      ai_judgment_prompt: $prompt,
-      commit_types: $commit_types,
-      issue_types: $issue_types
-    }'
-}
-```
-
-#### 2. テンプレート・プロンプト関数
+#### 1. テンプレート・プロンプト関数
 
 ##### get_template_content
 
@@ -542,6 +346,75 @@ get_template_content() {
 }
 ```
 
+##### extract_template_fields
+
+```bash
+##
+# @brief Extract textarea fields from YAML template
+# @description Parses YAML template and extracts label/description/placeholder for each textarea field
+# @param $1 Template content (YAML format)
+# @return 0 on success
+# @stdout JSON array: [{"label":"💡 What's...","description":"...","placeholder":"..."},...]
+# @example
+#   fields=$(extract_template_fields "$template_content")
+#   echo "$fields" | jq -r '.[0].label'
+##
+extract_template_fields() {
+  local template_content="$1"
+
+  # YAML を解析して type: textarea のブロックを抽出
+  echo "$template_content" | awk '
+    BEGIN { in_textarea = 0; label = ""; description = ""; placeholder = "" }
+
+    /^  - type: textarea/ {
+      in_textarea = 1
+      label = ""
+      description = ""
+      placeholder = ""
+      next
+    }
+
+    /^  - type:/ && in_textarea {
+      # 前のtextareaブロック終了、出力
+      if (label != "") {
+        printf "{\"label\":\"%s\",\"description\":\"%s\",\"placeholder\":\"%s\"}\n", label, description, placeholder
+      }
+      in_textarea = 0
+      label = ""
+      description = ""
+      placeholder = ""
+    }
+
+    in_textarea && /^[[:space:]]+label:/ {
+      sub(/^[[:space:]]+label:[[:space:]]*/, "")
+      gsub(/"/, "\\\"", $0)  # Escape double quotes
+      label = $0
+    }
+
+    in_textarea && /^[[:space:]]+description:/ {
+      sub(/^[[:space:]]+description:[[:space:]]*/, "")
+      gsub(/"/, "\\\"", $0)  # Escape double quotes
+      description = $0
+    }
+
+    in_textarea && /^[[:space:]]+placeholder:/ {
+      sub(/^[[:space:]]+placeholder:[[:space:]]*/, "")
+      gsub(/^"/, "", $0)  # Remove leading quote
+      gsub(/"$/, "", $0)  # Remove trailing quote
+      gsub(/"/, "\\\"", $0)  # Escape remaining quotes
+      placeholder = $0
+    }
+
+    END {
+      # 最後のブロックを出力
+      if (label != "") {
+        printf "{\"label\":\"%s\",\"description\":\"%s\",\"placeholder\":\"%s\"}\n", label, description, placeholder
+      }
+    }
+  ' | jq -s '.'
+}
+```
+
 ##### build_draft_generation_prompt
 
 ```bash
@@ -563,18 +436,22 @@ build_draft_generation_prompt() {
   local issue_type="$3"
   local template_content="$4"
 
+  # テンプレートからフィールドを抽出
+  local fields
+  fields=$(extract_template_fields "$template_content")
+
   # Build JSON parameters
   local json_params
   json_params=$(jq -n \
     --arg title "$title" \
     --arg summary "$summary" \
     --arg issue_type "$issue_type" \
-    --arg template "$template_content" \
+    --argjson fields "$fields" \
     '{
       title: $title,
       summary: $summary,
       issue_type: $issue_type,
-      template_content: $template
+      fields: $fields
     }')
 
   # Build prompt with JSON parameters
@@ -584,69 +461,38 @@ build_draft_generation_prompt() {
 【パラメータ】
 ${json_params}
 
-【処理手順】
-1. template_content (YAMLフォーマット) のbody[]配列から見出し構造を抽出
-2. type: textarea/input/dropdown の attributes.label を見出し (### レベル) として使用
-3. Markdown生成:
-   - タイトル形式: # [\${capitalize(issue_type)}] \${title}
-   - 各セクションは ### 見出し + 内容説明
-   - placeholder や description をガイドとして活用
+【重要な指示】
+1. fields[] 配列には各セクションの情報が含まれています
+2. 各フィールドの label を **そのまま** ### 見出しとして使用 (絵文字も含む)
+3. summary を参考に、description/placeholder に基づいた内容を生成
+4. すべてのフィールドに対して内容を記述する
 
-【出力形式】
+【出力形式の例】
+# [Feature] ${title}
+
+### 💡 What's the problem you're solving?
+(summary から問題点を抽出)
+
+### ✨ Proposed solution
+(summary から解決策を抽出)
+
+### 🔀 Alternatives considered
+(代替案を考察、または「検討していません」)
+
+### 📎 Additional context
+(追加情報、または「特になし」)
+
+【禁止事項】
+- label の文言を変更しない (絵文字・記号も含めて完全一致)
+- fields に存在しない見出しを追加しない
+- 空のセクションを残さない (内容がない場合は「特になし」「検討していません」など)
+
 完全なMarkdown文字列のみを返してください (JSON不要、説明不要)
 EOF
 }
 ```
 
-#### 3. ファイル操作関数
-
-##### save_draft_to_file
-
-```bash
-##
-# @brief Save draft to file
-# @description Saves the Markdown draft to specified file path with directory creation
-# @param $1 Draft content (Markdown string)
-# @param $2 Output file path (optional, empty string for no save)
-# @return 0 on success, 1 on directory creation failure or write failure
-# @stdout Absolute path to saved file (empty if output_path not specified)
-# @stderr Error message if directory creation or write fails
-# @example
-#   saved_path=$(save_draft_to_file "$draft" "temp/issues/issue-001.md")
-#   echo "Saved to: $saved_path"
-##
-save_draft_to_file() {
-  local draft="$1"
-  local output_path="$2"
-
-  # 空チェック
-  if [[ -z "$output_path" ]]; then
-    echo ""
-    return 0
-  fi
-
-  # ディレクトリ作成
-  local dir_path
-  dir_path=$(dirname "$output_path")
-  if [[ ! -d "$dir_path" ]]; then
-    mkdir -p "$dir_path" 2>/dev/null || {
-      echo "Error: Failed to create directory: $dir_path" >&2
-      return 1
-    }
-  fi
-
-  # ファイル保存
-  echo "$draft" > "$output_path" 2>/dev/null || {
-    echo "Error: Failed to write file: $output_path" >&2
-    return 1
-  }
-
-  # 成功時は絶対パスを返す
-  realpath "$output_path" 2>/dev/null || echo "$output_path"
-}
-```
-
-#### 4. LLM統合関数
+#### 2. LLM統合関数
 
 ##### call_llm_with_prompt
 
@@ -691,53 +537,25 @@ call_llm_with_prompt() {
 ```javascript
 /**
  * JSON入力を解析してパラメータを抽出
- * @param {string} inputJson - title, summary, output_path, modelを含むJSON文字列
- * @returns {{title: string, summary: string, outputPath: string|null, model: string}}
+ * @param {string} inputJson - title, issue_type, summary, modelを含むJSON文字列
+ * @returns {{title: string, issueType: string, summary: string, model: string}}
  * @throws {SyntaxError} JSONが不正な形式の場合
  * @example
- * const params = parseInput('{"title":"Issue title", "summary":"Description"}');
- * console.log(params.title); // "Issue title"
+ * const params = parseInput('{"title":"Issue title", "issue_type":"feature", "summary":"Description"}');
+ * console.log(params.issueType); // "feature"
  */
 function parseInput(inputJson) {
   const parsed = JSON.parse(inputJson);
   return {
     title: parsed.title,
+    issueType: parsed.issue_type,
     summary: parsed.summary,
-    model: parsed.model || 'gpt-5',
-    outputPath: parsed.output_path || null,
+    model: parsed.model || 'gpt-4o',
   };
 }
 ```
 
 #### 2. Bash関数呼び出しラッパー
-
-##### callPrepareMetadata
-
-```javascript
-/**
- * Bashスクリプトを実行してAI判定用メタデータを準備
- * @param {string} title - Issueタイトル
- * @param {string} summary - Issue概要
- * @returns {Promise<{ai_judgment_prompt: string, commit_types: string, issue_types: string}>}
- * @throws {Error} Bash実行失敗またはJSON解析失敗時
- * @example
- * const metadata = await callPrepareMetadata("タイトル", "サマリー");
- * console.log(metadata.ai_judgment_prompt);
- */
-async function callPrepareMetadata(title, summary) {
-  const bashScript = `
-extract_commit_types() { ... }
-build_issue_types_table() { ... }
-build_ai_judgment_prompt() { ... }
-prepare_metadata() { ... }
-
-prepare_metadata "${title}" "${summary}"
-`;
-
-  const result = await Bash({ command: bashScript });
-  return JSON.parse(result.output);
-}
-```
 
 ##### callGetTemplateContent
 
@@ -790,88 +608,7 @@ build_draft_generation_prompt "${title}" "${summary}" "${issueType}" "${template
 }
 ```
 
-##### saveDraftIfNeeded
-
-```javascript
-/**
- * 必要に応じてMarkdown下書きをファイルに保存
- * @param {string} draft - Markdown下書き内容
- * @param {string|null} outputPath - 保存先ファイルパス (nullの場合は保存しない)
- * @returns {Promise<string|null>} 保存先の絶対パス (保存しなかった場合はnull)
- * @throws {Error} 保存失敗時 (エラーをキャッチしてnullを返す)
- * @example
- * const path = await saveDraftIfNeeded(draft, "temp/issues/issue-001.md");
- * console.log(path); // "/absolute/path/to/temp/issues/issue-001.md"
- */
-async function saveDraftIfNeeded(draft, outputPath) {
-  if (!outputPath) { return null; }
-
-  const bashScript = `
-save_draft_to_file() {
-  local draft="$1"
-  local output_path="$2"
-
-  if [[ -z "$output_path" ]]; then
-    echo ""
-    return 0
-  fi
-
-  local dir_path
-  dir_path=$(dirname "$output_path")
-  if [[ ! -d "$dir_path" ]]; then
-    mkdir -p "$dir_path" 2>/dev/null || {
-      echo "Error: Failed to create directory: $dir_path" >&2
-      return 1
-    }
-  fi
-
-  echo "$draft" > "$output_path" 2>/dev/null || {
-    echo "Error: Failed to write file: $output_path" >&2
-    return 1
-  }
-
-  realpath "$output_path" 2>/dev/null || echo "$output_path"
-}
-
-save_draft_to_file "${draft}" "${outputPath}"
-`;
-
-  try {
-    const result = await Bash({ command: bashScript });
-    return result.output.trim(); // 保存先絶対パス
-  } catch (error) {
-    console.error('Failed to save draft:', error);
-    return null;
-  }
-}
-```
-
-#### 3. LLM統合関数
-
-##### callLLMForAIJudgment
-
-```javascript
-/**
- * LLM (Codex/Claude) を呼び出してAI判定を実行
- * @param {string} aiJudgmentPrompt - AI判定用プロンプト
- * @param {string} model - 使用するモデル名 (デフォルト: gpt-5)
- *                         Claude系: claude-*, sonnet, opus, haiku
- *                         OpenAI系: gpt-*, o1-*, o3-*, etc.
- * @returns {Promise<{commit_type: string, issue_type: string, branch_type: string, reasoning: string}>}
- * @throws {Error} Bash実行失敗またはJSON解析失敗時
- * @example
- * const judgment = await callLLMForAIJudgment(prompt, "gpt-4o");
- * console.log(judgment.commit_type); // "feat"
- */
-async function callLLMForAIJudgment(aiJudgmentPrompt, model) {
-  const bashScript = `
-call_llm_with_prompt "\${aiJudgmentPrompt}" "\${model}"
-`;
-
-  const result = await Bash({ command: bashScript });
-  return JSON.parse(result.output.trim());
-}
-```
+#### 2. LLM統合関数
 
 ##### callLLMForDraft
 
@@ -898,76 +635,35 @@ call_llm_with_prompt "\${draftPrompt}" "\${model}"
 }
 ```
 
-#### 4. 出力構築関数
-
-##### buildFinalOutput
-
-```javascript
-/**
- * 最終的なJSON出力を構築
- * @param {{commit_type: string, issue_type: string, branch_type: string, reasoning: string}} aiJudgment - AI判定結果
- * @param {string} draft - 生成されたMarkdown下書き
- * @param {string|null} savedTo - 保存先パス (保存していない場合はnull)
- * @returns {{commit_type: string, issue_type: string, branch_type: string, reasoning: string, draft: string, saved_to?: string}}
- * @example
- * const output = buildFinalOutput(judgment, draft, "/path/to/draft.md");
- * console.log(output.commit_type); // "feat"
- */
-function buildFinalOutput(aiJudgment, draft, savedTo) {
-  const output = {
-    commit_type: aiJudgment.commit_type,
-    issue_type: aiJudgment.issue_type,
-    branch_type: aiJudgment.branch_type,
-    reasoning: aiJudgment.reasoning,
-    draft: draft,
-  };
-
-  if (savedTo) {
-    output.saved_to = savedTo;
-  }
-
-  return output;
-}
-```
-
-#### 5. メイン実行関数
+#### 3. メイン実行関数
 
 ##### generateIssue
 
 ```javascript
 /**
  * JSON入力からGitHub Issue下書き生成処理を実行 (メイン関数)
- * @param {string} inputJson - title, summary, output_path, modelを含むJSON文字列
- * @returns {Promise<{commit_type: string, issue_type: string, branch_type: string, reasoning: string, draft: string, saved_to?: string}>}
+ * @param {string} inputJson - title, issue_type, summary, modelを含むJSON文字列
+ * @returns {Promise<string>} 生成されたMarkdown下書き
  * @throws {Error} いずれかの処理ステップで失敗した場合
  * @example
- * const result = await generateIssue('{"title":"Feature request","summary":"Add logging"}');
- * console.log(result.draft); // "# [Feature] Feature request\n\n..."
+ * const draft = await generateIssue('{"title":"Feature request","issue_type":"feature","summary":"Add logging"}');
+ * console.log(draft); // "# [Feature] Feature request\n\n..."
  */
 async function generateIssue(inputJson) {
   // Step 1: 入力解析
-  const { title, summary, outputPath, model } = parseInput(inputJson);
+  const { title, issueType, summary, model } = parseInput(inputJson);
 
-  // Step 2: AI判定プロンプト生成
-  const metadata = await callPrepareMetadata(title, summary);
+  // Step 2: テンプレート読み込み
+  const templateContent = await callGetTemplateContent(issueType);
 
-  // Step 3: LLM AI判定
-  const aiJudgment = await callLLMForAIJudgment(metadata.ai_judgment_prompt, model);
+  // Step 3: 下書き生成プロンプト構築
+  const draftPrompt = await callBuildDraftPrompt(title, summary, issueType, templateContent);
 
-  // Step 4: テンプレート読み込み
-  const templateContent = await callGetTemplateContent(aiJudgment.issue_type);
-
-  // Step 5: 下書き生成プロンプト構築
-  const draftPrompt = await callBuildDraftPrompt(title, summary, aiJudgment.issue_type, templateContent);
-
-  // Step 6: LLM下書き生成
+  // Step 4: LLM下書き生成
   const draft = await callLLMForDraft(draftPrompt, model);
 
-  // Step 7: ファイル保存（output_path指定時）
-  const savedTo = await saveDraftIfNeeded(draft, outputPath);
-
-  // Step 8: 最終出力
-  return buildFinalOutput(aiJudgment, draft, savedTo);
+  // Markdown下書きを返す
+  return draft;
 }
 ```
 
