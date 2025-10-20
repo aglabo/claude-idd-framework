@@ -61,6 +61,9 @@ _load_last_file() {
 ##
 # セッション情報を保存（key, value のペアを可変長で受け取る形式）
 #
+# 特殊キー: __LAST_DRAFT_FILE__ を指定すると、セッションファイルと同じディレクトリに
+# .last_draft ファイルも自動的に保存される
+#
 # @param $1 セッションファイルパス
 # @param $@ キーと値のペア（例: KEY1 VALUE1 KEY2 VALUE2 ...）
 # @return 0=成功, 1=失敗（ファイルパスが指定されていない場合など）
@@ -69,6 +72,11 @@ _load_last_file() {
 #     LAST_ISSUE_FILE "$filename" \
 #     LAST_ISSUE_NUMBER "$issue_num" \
 #     LAST_COMMAND "$command"
+#
+#   # .last_draft も保存する例:
+#   _save_session "$SESSION_FILE" \
+#     LAST_ISSUE_FILE "$filename" \
+#     __LAST_DRAFT_FILE__ "$filename"
 _save_session() {
   local session_file="$1"
   shift
@@ -77,6 +85,9 @@ _save_session() {
     error_print "❌ Error: Session file path required"
     return 1
   fi
+
+  # 特殊キーの抽出
+  local last_draft_file=""
 
   {
     echo "# Last session"
@@ -92,13 +103,27 @@ _save_session() {
       fi
 
       local value="${!val_index}"
-      echo "$key=\"${value}\""
+
+      # 特殊キーの処理
+      if [ "$key" = "__LAST_DRAFT_FILE__" ]; then
+        last_draft_file="$value"
+      else
+        # 通常のキーはセッションファイルに保存
+        echo "$key=\"${value}\""
+      fi
 
       i=$((i + 2))
     done
 
     echo "LAST_MODIFIED=\"$(date -Iseconds 2>/dev/null || date +%Y-%m-%dT%H:%M:%S)\""
   } > "$session_file"
+
+  # .last_draft の保存（セッションファイルと同じディレクトリに作成）
+  if [ -n "$last_draft_file" ]; then
+    local session_dir
+    session_dir="$(dirname "$session_file")"
+    _save_last_file "$session_dir" "$last_draft_file"
+  fi
 }
 
 ##
