@@ -60,11 +60,11 @@ save_session() {
 
   mkdir -p "$SDD_BASE"
 
-  cat > "$SESSION_FILE" << EOF
-namespace=$namespace
-module=$module
-timestamp=$(date -Iseconds 2>/dev/null || date +%Y-%m-%dT%H:%M:%S)
-EOF
+  declare -A session_data=(
+    [namespace]="$namespace"
+    [module]="$module"
+  )
+  _save_session "$SESSION_FILE" session_data
 
   echo "💾 Session saved: $namespace/$module"
 }
