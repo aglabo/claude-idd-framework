@@ -54,19 +54,21 @@ _load_last_file() {
 }
 
 ##
-# セッション情報を保存（key, value のペアを可変長で受け取る形式）
+# セッション情報を保存(連想配列を参照渡しで受け取る形式)
 #
 # @param $1 セッションファイルパス
-# @param $@ キーと値のペア（例: KEY1 VALUE1 KEY2 VALUE2 ...）
-# @return 0=成功, 1=失敗（ファイルパスが指定されていない場合など）
+# @param $2 連想配列変数名(nameref)
+# @return 0=成功, 1=失敗(ファイルパスが指定されていない場合など)
 # @example
-#   _save_session "$SESSION_FILE" \
-#     LAST_ISSUE_FILE "$filename" \
-#     LAST_ISSUE_NUMBER "$issue_num" \
-#     LAST_COMMAND "$command"
+#   declare -A session_data=(
+#     [LAST_ISSUE_FILE]="$filename"
+#     [LAST_ISSUE_NUMBER]="$issue_num"
+#     [LAST_COMMAND]="$command"
+#   )
+#   _save_session "$SESSION_FILE" session_data
 _save_session() {
   local session_file="$1"
-  shift
+  local -n data="$2"
 
   if [ -z "$session_file" ]; then
     error_print "❌ Error: Session file path required"
@@ -76,20 +78,8 @@ _save_session() {
   {
     echo "# Last session"
 
-    local i=0
-    while [ "$i" -lt "$#" ]; do
-      local key="${!i}"
-      local val_index=$((i + 1))
-
-      if [ "$val_index" -ge "$#" ]; then
-        error_print "⚠️ Warning: Unpaired key for '${key}'"
-        break
-      fi
-
-      local value="${!val_index}"
-      echo "$key=\"${value}\""
-
-      i=$((i + 2))
+    for key in "${!data[@]}"; do
+      echo "$key=\"${data[$key]}\""
     done
 
     echo "LAST_MODIFIED=\"$(date -Iseconds 2>/dev/null || date +%Y-%m-%dT%H:%M:%S)\""

@@ -335,13 +335,7 @@ EOF
 filename=$(basename "$filepath")
 
 # 1. セッション情報を保存 (.last.session)
-_save_session "$SESSION_FILE" \
-  filename "$filename" \
-  title "$title" \
-  issue_type "$issue_type" \
-  commit_type "$commit_type" \
-  branch_type "$branch_type" \
-  command "new"
+save_issue_session "$filename" "" "$title" "$issue_type" "new" ""
 
 # 2. 最終ファイル名を保存 (.last_draft)
 _save_last_file "$ISSUES_DIR" "$filename"

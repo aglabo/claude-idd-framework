@@ -205,14 +205,63 @@ if [[ -z "$TITLE" ]]; then
   exit 1
 fi
 
+# Determine base branch (parent branch of current branch)
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+BASE_BRANCH="main"
+
+# Find parent branch by checking merge-base with all branches
+BEST_DISTANCE=999999
+CANDIDATES=()
+
+for branch in $(git for-each-ref --format='%(refname:short)' refs/heads/ refs/remotes/origin/ | grep -v "$CURRENT_BRANCH" | grep -v "^origin$"); do
+  # Skip remote tracking branches if local exists
+  if [[ "$branch" =~ ^origin/ ]]; then
+    LOCAL_NAME="${branch#origin/}"
+    if git show-ref --verify --quiet "refs/heads/$LOCAL_NAME"; then
+      continue
+    fi
+  fi
+
+  # Calculate merge-base and distance
+  MERGE_BASE=$(git merge-base "$CURRENT_BRANCH" "$branch" 2>/dev/null || echo "")
+  if [[ -n "$MERGE_BASE" ]]; then
+    DISTANCE=$(git rev-list --count "$MERGE_BASE..$CURRENT_BRANCH")
+    if [[ $DISTANCE -gt 0 ]]; then
+      if [[ $DISTANCE -lt $BEST_DISTANCE ]]; then
+        BEST_DISTANCE=$DISTANCE
+        CANDIDATES=("$branch")
+      elif [[ $DISTANCE -eq $BEST_DISTANCE ]]; then
+        CANDIDATES+=("$branch")
+      fi
+    fi
+  fi
+done
+
+# If multiple candidates with same distance, prioritize main/master
+FOUND_MAIN=false
+for candidate in "${CANDIDATES[@]}"; do
+  CLEAN_NAME="${candidate#origin/}"
+  if [[ "$CLEAN_NAME" == "main" ]] || [[ "$CLEAN_NAME" == "master" ]]; then
+    BASE_BRANCH="$CLEAN_NAME"
+    FOUND_MAIN=true
+    break
+  fi
+done
+
+# If no main/master found, use first candidate
+if [[ "$FOUND_MAIN" == false ]] && [[ ${#CANDIDATES[@]} -gt 0 ]]; then
+  BASE_BRANCH="${CANDIDATES[0]#origin/}"
+fi
+
 echo "🚀 Creating PR: $TITLE"
+echo "📌 Base branch: $BASE_BRANCH (detected parent)"
 
 # Extract body (skip H1 title and empty line)
 BODY_FILE="$PR_DIR/pr_body.txt"
 tail -n +3 "$DRAFT_FILE" > "$BODY_FILE"
 
-# Create PR using GitHub CLI
-if gh pr create --title "$TITLE" --body-file "$BODY_FILE"; then
+# Create PR using GitHub CLI with auto-detected base branch
+if gh pr create --base "$BASE_BRANCH" --title "$TITLE" --body-file "$BODY_FILE"; then
   echo "🎉 PR successfully created!"
 
   # Clean up draft and temporary files

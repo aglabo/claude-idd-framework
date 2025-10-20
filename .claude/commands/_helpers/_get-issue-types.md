@@ -7,8 +7,8 @@ allowed-tools:
   - Bash(sed:*)
   - mcp__codex-mcp__codex
 
-argument-hint: title summary
-description: title と summary から commit種別、issue種別、branch種別を AI判定で取得する
+argument-hint: title [summary]
+description: title (と summary) から commit種別、issue種別、branch種別を判定。summary なしの場合はタイトルプレフィックスから高速判定
 
 # 設定変数
 config:
@@ -16,11 +16,13 @@ config:
 
 # プロジェクト要素
 title: _get-issue-types
-version: 1.0.0
+version: 1.2.0
 created: 2025-10-19
 authors:
   - atsushifx
 changes:
+  - 2025-10-20: v1.2.0 - すべてAI判定に変更、柔軟性を優先（高速パス削除）
+  - 2025-10-20: v1.1.0 - summary をオプション化、タイトルプレフィックスから高速判定機能を追加
   - 2025-10-19: v1.0.0 - 初版作成、issue-generator.md のロジックを抽出
 copyright:
   - Copyright (c) 2025 atsushifx <https://github.com/atsushifx>
@@ -53,14 +55,18 @@ title と summary から commit種別、issue種別、branch種別を AI判定�
 
 ### 入力パラメータ
 
-引数として title と summary を受け取ります。両方とも必須です:
+引数として title と summary を受け取ります:
 
 ```bash
+# AI判定モード (summary あり)
 /_helpers:_get-issue-types "ユーザー認証機能を追加したい" "メール+パスワードでログインできるようにしたい"
+
+# 高速モード (summary なし、タイトルプレフィックスから判定)
+/_helpers:_get-issue-types "[Enhancement]既存機能を改善" ""
 ```
 
 - `title`: タイトル (必須)
-- `summary`: サマリー (必須)
+- `summary`: サマリー (オプション、空文字列の場合はタイトルから判定)
 
 ### 出力形式
 
@@ -87,13 +93,29 @@ title と summary から commit種別、issue種別、branch種別を AI判定�
 エラー理由の種類:
 
 - `"no title"`: title が指定されていない
-- `"no summary"`: summary が指定されていない
 - `"commit types extraction failed"`: commit種別の抽出に失敗
 - `"ai judgment failed"`: AI判定に失敗
 
 ## 使用例
 
-### 基本的な使用 (新機能追加)
+### タイトルのみでAI判定 (GitHub Issueロード時)
+
+```bash
+/_helpers:_get-issue-types "[Enhancement]Claudeのカスタムスラッシュコマンドとエージェントを再構成" ""
+```
+
+出力:
+
+```json
+{
+  "commit_type": "refactor",
+  "issue_type": "enhancement",
+  "branch_type": "enhancement",
+  "reasoning": "タイトルプレフィックス [Enhancement] と内容から、既存機能の再構成による改善と判定"
+}
+```
+
+### タイトル+サマリーでAI判定 (Issue作成時)
 
 ```bash
 /_helpers:_get-issue-types "ログ出力機能を追加" "デバッグ用にコンソールログを出力できるようにしたい"
@@ -127,10 +149,10 @@ title と summary から commit種別、issue種別、branch種別を AI判定�
 }
 ```
 
-### エラー例 (引数不足)
+### エラー例 (タイトル未指定)
 
 ```bash
-/_helpers:_get-issue-types "タイトル"
+/_helpers:_get-issue-types "" ""
 ```
 
 出力 (stderr):
@@ -138,7 +160,7 @@ title と summary から commit種別、issue種別、branch種別を AI判定�
 ```json
 {
   "result": "error",
-  "reason": "no summary"
+  "reason": "no title"
 }
 ```
 
@@ -153,17 +175,21 @@ title と summary から commit種別、issue種別、branch種別を AI判定�
   ↓
 [引数パース] → title, summary
   ↓
-[引数検証] → 空ならエラー終了
+[title検証] → 空ならエラー終了
   ↓
 [commit種別抽出] → extract_commit_types()
   ↓
 [issue種別テーブル生成] → build_issue_types_table()
   ↓
 [AI判定プロンプト構築] → build_ai_judgment_prompt()
+  ├─ summary あり: タイトル+サマリーで判定
+  └─ summary なし: タイトルのみで判定
   ↓
 [Codex AI判定] → Claude が実行
   ↓
 [JSON出力] → commit_type, issue_type, branch_type, reasoning
+  ↓
+[終了]
 ```
 
 ### 処理ステップ
@@ -184,12 +210,12 @@ bash strict mode を有効化します。
 title="${1:-}"
 summary="${2:-}"
 
-# 引数検証
+# title 検証
 [[ -z "$title" ]] && output_error "no title"
-[[ -z "$summary" ]] && output_error "no summary"
 ```
 
-title と summary が指定されていることを確認します。
+title が指定されていることを確認します。summary はオプションです。
+summary が空の場合もStep 3以降のAI判定処理に進みます。
 
 #### Step 3: commit種別抽出
 
@@ -294,7 +320,6 @@ EOF
 
 ```bash
 [[ -z "$title" ]] && output_error "no title"
-[[ -z "$summary" ]] && output_error "no summary"
 [[ -z "$commit_types" ]] && output_error "commit types extraction failed"
 ```
 

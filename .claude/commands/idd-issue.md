@@ -777,16 +777,17 @@ save_issue_session() {
   local command="$5"
   local branch_name="${6:-}"
 
-  local -a kv_pairs=(
-    LAST_ISSUE_FILE "$filename"
-    LAST_ISSUE_NUMBER "$issue_num"
-    LAST_ISSUE_TITLE "$title"
-    LAST_ISSUE_TYPE "$issue_type"
-    LAST_COMMAND "$command"
-    LAST_BRANCH_NAME "$branch_name"
+  declare -A session_data=(
+    [LAST_ISSUE_FILE]="$filename"
+    [LAST_ISSUE_NUMBER]="$issue_num"
+    [LAST_ISSUE_TITLE]="$title"
+    [LAST_ISSUE_TYPE]="$issue_type"
+    [LAST_COMMAND]="$command"
+    [LAST_BRANCH_NAME]="$branch_name"
+    [__LAST_DRAFT_FILE__]="$filename"
   )
 
-  _save_session "$SESSION_FILE" "${kv_pairs[@]}"
+  _save_session "$SESSION_FILE" session_data
 }
 
 # Issue処理後のセッション更新
