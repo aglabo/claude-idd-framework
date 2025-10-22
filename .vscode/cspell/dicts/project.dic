@@ -56,6 +56,7 @@ MSYS
 mtimes
 mttr
 mylink
+nameref
 nativestrict
 neverthrow
 nullglob
@@ -65,6 +66,7 @@ oneline
 pathlib
 pimzino
 Popen
+prereq
 pytest
 recov
 redhat
