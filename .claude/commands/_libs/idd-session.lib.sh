@@ -1,9 +1,5 @@
-# Copyright (c) 2025 Furukawa Atsushi <atsushifx@gmail.com>
-#
-# This software is released under the MIT License.
-# https://opensource.org/licenses/MIT
-
 #!/bin/bash
+##
 # src: .claude/commands/_libs/idd-session.lib.sh
 # @(#) IDD Session Management Library
 #
@@ -16,7 +12,6 @@
 #
 # This software is released under the MIT License.
 # https://opensource.org/licenses/MIT
-
 
 # 依存: io-utils.lib.sh (error_print)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -60,7 +55,6 @@ _save_issue_session() {
   # Use _save_session library function
   _save_session "$session_file" session_data
 }
-
 
 ##
 # Issueセッションを読み込み（エラーハンドリング付き）
@@ -182,7 +176,7 @@ _save_session() {
 # @example
 #   load_session "$SESSION_FILE"
 #   echo "Last issue: $LAST_ISSUE_NUMBER"
-load_session() {
+_load_session() {
   local session_file="$1"
 
   if [ ! -f "$session_file" ]; then
@@ -203,7 +197,7 @@ load_session() {
 #   if has_session "$SESSION_FILE"; then
 #     echo "Session exists"
 #   fi
-has_session() {
+_has_session() {
   local session_file="$1"
   [ -f "$session_file" ]
 }
