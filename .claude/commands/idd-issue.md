@@ -160,9 +160,6 @@ ensure_issues_dir
 #!/bin/bash
 setup_issue_env
 
-# Load subcommand session library
-. "$LIBS_DIR/idd-subcommand-session.lib.sh"
-
 # Check if issues exist
 if [ ! -d "$ISSUES_DIR" ] || [ -z "$(ls -A "$ISSUES_DIR"/*.md 2>/dev/null)" ]; then
   echo "No issues found. Run: /idd-issue new"
@@ -223,8 +220,6 @@ setup_issue_env
 
 # Check for selection from /select-from-list subcommand (priority 1)
 if [ -z "$1" ]; then
-  . "$LIBS_DIR/idd-subcommand-session.lib.sh"
-
   if _has_subcommand_session; then
     output=$(_read_subcommand_output)
 
@@ -261,8 +256,6 @@ setup_issue_env
 
 # Check for selection from /select-from-list subcommand (priority 1)
 if [ -z "$1" ]; then
-  . "$LIBS_DIR/idd-subcommand-session.lib.sh"
-
   if _has_subcommand_session; then
     output=$(_read_subcommand_output)
 

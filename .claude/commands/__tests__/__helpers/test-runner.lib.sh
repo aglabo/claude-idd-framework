@@ -243,6 +243,7 @@ run_shellspec_tests() {
 # @param $1 Test level (unit|functional|integration|e2e)
 # @param $2 Base test directory
 # @param $3 Script directory (for relative path display)
+# @param $4 Optional: Specific test file to run (relative to base_dir or absolute path)
 # @stdout Test execution output
 # @exitcode 0 All tests passed
 # @exitcode 1 Tests failed or not found
@@ -250,6 +251,7 @@ run_tests_for_level() {
   local level="$1"
   local base_dir="$2"
   local script_dir="$3"
+  local test_file="${4:-}"
 
   local level_name
   level_name=$(get_level_name "$level")
@@ -262,17 +264,47 @@ run_tests_for_level() {
     return 1
   fi
 
-  # Find test files
-  print_test_message "$TEST_YELLOW" "📁 Searching for ${level} tests..."
   local test_files
-  if ! test_files=$(find_tests_by_level "$level" "$base_dir"); then
-    return 1
-  fi
 
-  local test_count
-  test_count=$(echo "$test_files" | wc -l)
-  print_test_message "$TEST_GREEN" "✓ Found $test_count ${level} test file(s)"
-  echo ""
+  # If specific test file is provided
+  if [[ -n "$test_file" ]]; then
+    # Resolve absolute path
+    local abs_test_file
+    if [[ "$test_file" = /* ]]; then
+      abs_test_file="$test_file"
+    else
+      abs_test_file="$base_dir/$test_file"
+    fi
+
+    # Validate file exists
+    if [[ ! -f "$abs_test_file" ]]; then
+      print_test_message "$TEST_RED" "❌ Error: Test file not found: $test_file"
+      return 1
+    fi
+
+    # Validate file matches level pattern
+    local pattern="${TEST_LEVEL_PATTERNS[$level]}"
+    local basename="${abs_test_file##*/}"
+    if [[ ! "$basename" == $pattern ]]; then
+      print_test_message "$TEST_RED" "❌ Error: File '$test_file' does not match ${level} test pattern ($pattern)"
+      return 1
+    fi
+
+    test_files="$abs_test_file"
+    print_test_message "$TEST_GREEN" "✓ Using specified test file"
+    echo ""
+  else
+    # Find all test files in directory (existing behavior)
+    print_test_message "$TEST_YELLOW" "📁 Searching for ${level} tests..."
+    if ! test_files=$(find_tests_by_level "$level" "$base_dir"); then
+      return 1
+    fi
+
+    local test_count
+    test_count=$(echo "$test_files" | wc -l)
+    print_test_message "$TEST_GREEN" "✓ Found $test_count ${level} test file(s)"
+    echo ""
+  fi
 
   # List test files
   print_test_files "$script_dir" "$test_files"

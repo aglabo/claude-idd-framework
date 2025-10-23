@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# get test typr from 1st argument
+# get test type from 1st argument
 TYPE="$1"
 OPTION=""
 

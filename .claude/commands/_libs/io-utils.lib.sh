@@ -42,3 +42,37 @@ error_print() {
     cat >&2
   fi
 }
+
+##
+# 非ASCII文字が含まれているかチェック
+#
+# テキストに非ASCII文字 (0x80以上のバイト) が含まれているかを判定します。
+# Windows環境でも動作するよう、LC_ALL=C でバイトレベルチェックを使用します。
+#
+# @param $1 チェック対象のテキスト
+# @return 0 (true) if non-ASCII characters found, 1 (false) if pure ASCII
+# @example
+#   if is_non_ascii "こんにちは"; then
+#     echo "Non-ASCII detected"
+#   fi
+#
+#   if is_non_ascii "hello world"; then
+#     echo "This won't print"
+#   fi
+is_non_ascii() {
+  local text="$1"
+
+  # 改行コードを削除
+  text=$(printf '%s' "$text" | tr -d '\n\r')
+
+  # sedでASCII文字 (0x00-0x7F) のみを削除
+  # 残りがあれば非ASCII文字が含まれている
+  local non_ascii_chars
+  non_ascii_chars=$(printf '%s' "$text" | LC_ALL=C sed 's/[\x00-\x7F]//g')
+
+  if [ -n "$non_ascii_chars" ]; then
+    return 0  # non-ASCII found
+  fi
+
+  return 1  # pure ASCII
+}

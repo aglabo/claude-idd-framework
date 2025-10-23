@@ -16,12 +16,16 @@
 #   - e2e: End-to-end workflow tests
 #
 # @usage
-#   ./run-tests.sh <subcommand>
+#   ./run-tests.sh <subcommand> [test_file]
 #
 # @arg $1 Subcommand (unit|functional|integration|e2e|all|--help|-h)
+# @arg $2 Optional: Specific test file to run (relative to test directory)
 #
 # @example Run unit tests
 #   ./run-tests.sh unit
+#
+# @example Run specific unit test file
+#   ./run-tests.sh unit unit/merge-json.unit.spec.sh
 #
 # @example Run all tests
 #   ./run-tests.sh all
@@ -57,7 +61,7 @@ if [[ ! -f "$SCRIPT_DIR/__helpers/test-runner.lib.sh" ]]; then
   exit 2
 fi
 
-source "$SCRIPT_DIR/__helpers/test-runner.lib.sh"
+. "$SCRIPT_DIR/__helpers/test-runner.lib.sh"
 
 # =============================================================================
 # Help Functions
@@ -69,7 +73,7 @@ source "$SCRIPT_DIR/__helpers/test-runner.lib.sh"
 # @exitcode 0 Always successful
 show_help() {
   cat << 'EOF'
-Usage: run-tests.sh <subcommand>
+Usage: run-tests.sh <subcommand> [test_file]
 
 Unified test runner for shellspec tests across all test levels.
 
@@ -81,6 +85,10 @@ Subcommands:
   all           Run all test levels sequentially
   --help, -h    Show this help message
 
+Arguments:
+  test_file     Optional: Specific test file to run (relative to test directory)
+                Only applicable for single-level subcommands (not 'all')
+
 Test Levels:
   unit          Individual function tests
   functional    Feature-level tests
@@ -88,9 +96,11 @@ Test Levels:
   e2e           End-to-end workflow tests
 
 Examples:
-  ./run-tests.sh unit          # Run unit tests
-  ./run-tests.sh all           # Run all tests
-  ./run-tests.sh --help        # Show help
+  ./run-tests.sh unit                              # Run all unit tests
+  ./run-tests.sh unit unit/merge-json.unit.spec.sh # Run specific unit test
+  ./run-tests.sh functional functional/xcp-validation.functional.spec.sh
+  ./run-tests.sh all                               # Run all tests
+  ./run-tests.sh --help                            # Show help
 
 Exit Codes:
   0   All tests passed
@@ -107,12 +117,14 @@ EOF
 ##
 # @brief Run tests for a single test level
 # @param $1 Test level (unit|functional|integration|e2e)
+# @param $@ Additional arguments (optional test file path)
 # @exitcode 0 Tests passed
 # @exitcode 1 Tests failed
 run_single_level() {
   local level="$1"
+  shift
 
-  run_tests_for_level "$level" "$SCRIPT_DIR" "$SCRIPT_DIR"
+  run_tests_for_level "$level" "$SCRIPT_DIR" "$SCRIPT_DIR" "$@"
 }
 
 ##
@@ -205,6 +217,7 @@ main() {
   fi
 
   local subcommand="$1"
+  shift
 
   # Handle help
   if [[ "$subcommand" == "--help" || "$subcommand" == "-h" ]]; then
@@ -226,7 +239,7 @@ main() {
       run_all_levels
       ;;
     unit|functional|integration|e2e)
-      run_single_level "$subcommand"
+      run_single_level "$subcommand" "$@"
       ;;
     *)
       print_test_message "$TEST_RED" "❌ Error: Unexpected subcommand '$subcommand'"
