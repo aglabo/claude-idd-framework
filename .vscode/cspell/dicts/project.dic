@@ -52,6 +52,7 @@ makedirs
 Mbps
 mhutchie
 mizchi
+mockuser
 MSYS
 mtimes
 mttr
@@ -59,11 +60,13 @@ mylink
 nameref
 nativestrict
 neverthrow
+noargs
 nullglob
 numstat
 oncall
 oneline
 pathlib
+pathspec
 pimzino
 Popen
 prereq
@@ -78,6 +81,7 @@ runbook
 sdd
 SDD
 sdras
+sed
 sess
 shardulm
 shdoc
@@ -86,6 +90,7 @@ SHELLSPEC
 startswith
 stringifiable
 stylelintcache
+subcmd
 subdirs
 TESTID
 timeframe
