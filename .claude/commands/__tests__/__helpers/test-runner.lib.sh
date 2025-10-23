@@ -186,9 +186,17 @@ find_tests_by_level() {
     return 1
   fi
 
-  # Find test files
-  local test_files
-  test_files=$(find "$test_dir" -name "$pattern" -type f | sort)
+  # Find test files and filter out those with '# skip shellspec' marker
+  local test_files=""
+  local file
+  for file in $(find "$test_dir" -name "$pattern" -type f | sort); do
+    # Check first 5 lines for skip marker
+    if ! head -n 5 "$file" 2>/dev/null | grep -q '^# skip shellspec'; then
+      test_files="${test_files}${file}"$'\n'
+    fi
+  done
+
+  test_files="${test_files%$'\n'}"  # Remove trailing newline
 
   if [[ -z "$test_files" ]]; then
     print_test_message "$TEST_YELLOW" "⚠️  Warning: No ${level} tests found in $test_dir"

@@ -221,10 +221,10 @@ summary が空の場合もStep 3以降のAI判定処理に進みます。
 
 ```bash
 # commit種別抽出
-commit_types=$(extract_commit_types)
+commit_types_table=$(extract_commit_types)
 
 # 抽出失敗チェック
-[[ -z "$commit_types" ]] && output_error "commit types extraction failed"
+[[ -z "$commit_types_table" ]] && output_error "commit types extraction failed"
 ```
 
 `configs/commitlint.config.js` から commit種別を動的抽出します。
@@ -233,7 +233,7 @@ commit_types=$(extract_commit_types)
 
 ```bash
 # issue種別テーブル生成
-issue_types=$(build_issue_types_table)
+issue_types_table=$(build_issue_types_table)
 ```
 
 6種類のissue種別定義をJSON配列として生成します。
@@ -242,7 +242,7 @@ issue_types=$(build_issue_types_table)
 
 ```bash
 # AI判定プロンプト構築
-prompt=$(build_ai_judgment_prompt "$title" "$summary" "$commit_types" "$issue_types")
+prompt=$(build_ai_judgment_prompt "$title" "$summary" "$commit_types_table" "$issue_types_table")
 
 # Claude に渡すシグナル
 echo "CALL_AI_JUDGMENT: $prompt"
@@ -320,7 +320,7 @@ EOF
 
 ```bash
 [[ -z "$title" ]] && output_error "no title"
-[[ -z "$commit_types" ]] && output_error "commit types extraction failed"
+[[ -z "$commit_types_table" ]] && output_error "commit types extraction failed"
 ```
 
 ### extract_commit_types()
@@ -333,12 +333,17 @@ commitlint.config.js から commit種別を抽出します。
 ##
 # @brief Extract commit types from commitlint config
 # @description Parses configs/commitlint.config.js and extracts commit type definitions as JSON array
+#
+# @given commitlint.config.js にcommit種別定義が存在する
+# @when extract_commit_types() を呼び出す
+# @then JSON配列 [{"type":"feat","description":"..."},...]を標準出力に返す
+#
 # @param $1 Config file path (default: configs/commitlint.config.js)
 # @return 0 on success, 1 on file not found
 # @stdout JSON array: [{"type":"feat","description":"New feature"},...]
 # @example
-#   commit_types=$(extract_commit_types)
-#   echo "$commit_types" | jq '.[0].type'
+#   commit_types_table=$(extract_commit_types)
+#   echo "$commit_types_table" | jq '.[0].type'
 ##
 extract_commit_types() {
   local config_file="${1:-configs/commitlint.config.js}"
@@ -358,8 +363,8 @@ extract_commit_types() {
 使用例:
 
 ```bash
-commit_types=$(extract_commit_types)
-echo "$commit_types" | jq -r '.[].type'
+commit_types_table=$(extract_commit_types)
+echo "$commit_types_table" | jq -r '.[].type'
 ```
 
 ### build_issue_types_table()
@@ -372,11 +377,16 @@ issue種別定義テーブルを生成します。
 ##
 # @brief Build issue types definition table
 # @description Creates a JSON array of issue type definitions with template mappings
+#
+# @given 6種類のissue種別定義 (feature/bug/enhancement/task/release/question)
+# @when build_issue_types_table() を呼び出す
+# @then JSON配列 [{"type":"...","description":"...","template":"..."},...]を標準出力に返す
+#
 # @return 0 on success
 # @stdout JSON array: [{"type":"feature","description":"新機能追加要求","template":"feature_request.yml"},...]
 # @example
-#   issue_types=$(build_issue_types_table)
-#   echo "$issue_types" | jq -r '.[].type'
+#   issue_types_table=$(build_issue_types_table)
+#   echo "$issue_types_table" | jq -r '.[].type'
 ##
 build_issue_types_table() {
   jq -n -c '[
@@ -417,8 +427,8 @@ build_issue_types_table() {
 使用例:
 
 ```bash
-issue_types=$(build_issue_types_table)
-echo "$issue_types" | jq -r '.[].description'
+issue_types_table=$(build_issue_types_table)
+echo "$issue_types_table" | jq -r '.[].description'
 ```
 
 ### build_ai_judgment_prompt()
@@ -431,6 +441,11 @@ AI判定用プロンプトを構築します。
 ##
 # @brief Build AI judgment prompt for Codex
 # @description Constructs a prompt for LLM to judge commit type, issue type, and branch type
+#
+# @given タイトル、サマリー、commit種別テーブル、issue種別テーブルが与えられる
+# @when build_ai_judgment_prompt() を呼び出す
+# @then AI判定用のプロンプトテキストを標準出力に返す
+#
 # @param $1 Issue title
 # @param $2 Issue summary
 # @param $3 Commit types JSON array
@@ -438,22 +453,22 @@ AI判定用プロンプトを構築します。
 # @return 0 on success
 # @stdout Prompt text for AI judgment
 # @example
-#   prompt=$(build_ai_judgment_prompt "タイトル" "サマリー" "$commit_types" "$issue_types")
+#   prompt=$(build_ai_judgment_prompt "タイトル" "サマリー" "$commit_types_table" "$issue_types_table")
 ##
 build_ai_judgment_prompt() {
   local title="$1"
   local summary="$2"
-  local commit_types="$3"
-  local issue_types="$4"
+  local commit_types_table="$3"
+  local issue_types_table="$4"
 
   cat <<EOF
 以下の情報から、最適なcommit種別、issue種別、branch種別を判定してJSON形式で返してください。
 
 【コミット種別定義】
-${commit_types}
+${commit_types_table}
 
 【Issue種別定義】
-${issue_types}
+${issue_types_table}
 
 【入力】
 - タイトル: "${title}"
@@ -487,7 +502,7 @@ EOF
 使用例:
 
 ```bash
-prompt=$(build_ai_judgment_prompt "$title" "$summary" "$commit_types" "$issue_types")
+prompt=$(build_ai_judgment_prompt "$title" "$summary" "$commit_types_table" "$issue_types_table")
 echo "$prompt"
 ```
 

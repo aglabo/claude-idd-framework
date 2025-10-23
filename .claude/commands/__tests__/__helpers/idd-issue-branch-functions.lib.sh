@@ -1,24 +1,25 @@
 #!/usr/bin/env bash
 # shellcheck shell=bash
 # src: ./.claude/commands/__tests__/__helpers/idd-issue-branch-functions.lib.sh
-# @(#): Implementation functions for /idd:issue:branch command testing
+# @(#): Test mock functions for /idd:issue:branch command
 #
 # @file idd-issue-branch-functions.lib.sh
-# @brief Provides implementation functions extracted from branch.md for testing
+# @brief Provides mock functions for testing branch.md implementation
 # @description
-#   This library contains the actual implementation functions from branch.md
-#   that are used in unit and integration tests.
+#   This library contains mock functions to replace external dependencies
+#   during unit and integration tests. The actual implementation functions
+#   are now located in branch.md and can be sourced from there.
 #
-#   Included functions:
-#   - detect_domain (T3)
-#   - route_subcommand (T2, simplified for testing)
+#   Mock functions:
+#   - mock_codex_mcp: Mocks Codex-MCP inference behavior
+#   - setup_branch_functions: Test setup helper
 #
 # @example Basic usage
 #   . .claude/commands/__tests__/__helpers/idd-issue-branch-functions.lib.sh
 #   setup_branch_functions
 #
 # @author atsushifx
-# @version 1.0.0
+# @version 2.0.0
 # @license MIT
 #
 # Copyright (c) 2025 atsushifx <https://github.com/atsushifx>
@@ -30,106 +31,129 @@
 # =============================================================================
 
 ##
-# @description Setup all branch command implementation functions
+# @description Setup test environment by sourcing branch.md implementation
 # @noargs
 # @exitcode 0 Always successful
+##
 setup_branch_functions() {
-  # Functions are defined in this file and become available when sourced
-  # This function exists for consistency with other libraries
-  return 0
-}
+  # Source the actual implementation from branch.md
+  local repo_root
+  repo_root=$(git rev-parse --show-toplevel)
 
-# =============================================================================
-# T3: Domain Detection Functions
-# =============================================================================
+  # Load required libraries
+  . "$repo_root/.claude/commands/_libs/io-utils.lib.sh"
+  . "$repo_root/.claude/commands/_libs/filename-utils.lib.sh"
+  . "$repo_root/.claude/commands/_libs/idd-session.lib.sh"
 
-##
-# @brief Detect domain from issue title or defaults
-# @description Determines the domain (namespace) for branch naming:
-#   1. If DOMAIN variable is set (--domain option), use it (highest priority)
-#   2. If title contains [domain] pattern, extract it
-#   3. Otherwise, map issue_type to default domain
-# @param $1 Title string (may contain [domain] prefix)
-# @param $2 Issue type (feature, bug, enhancement, task)
-# @return 0 on success
-# @stdout Domain string
-# @example
-#   domain=$(detect_domain "[scripts] Add xcp utility" "feature")
-#   # Returns: "scripts"
-#   domain=$(detect_domain "Fix validation bug" "bug")
-#   # Returns: "bugfix"
-##
-detect_domain() {
-  local title="$1"
-  local issue_type="${2:-feature}"
+  # Extract and source shell functions from branch.md
+  local branch_md="$repo_root/.claude/commands/idd/issue/branch.md"
 
-  # Priority 1: --domain option override (DOMAIN variable)
-  if [ -n "${DOMAIN:-}" ]; then
-    echo "$DOMAIN"
-    return 0
-  fi
+  # Extract bash code blocks from Script Library section using awk
+  # Create temporary file to avoid stdin sourcing issues
+  BRANCH_FUNCTIONS_TEMP_SCRIPT="${TMPDIR:-/tmp}/branch-functions-$$.sh"
+  sed -n '/^## スクリプトライブラリ/,/^## License$/p' "$branch_md" | \
+    awk '/^```bash$/ {flag=1; next} /^```$/ {flag=0; next} flag' > "$BRANCH_FUNCTIONS_TEMP_SCRIPT"
 
-  # Priority 2: Extract from [domain] pattern in title
-  if [[ "$title" =~ ^\[([a-zA-Z0-9_-]+)\] ]]; then
-    local extracted="${BASH_REMATCH[1]}"
-    echo "$extracted"
-    return 0
-  fi
-
-  # Priority 3: Map issue_type to default domain
-  case "$issue_type" in
-    bug)
-      echo "bugfix"
-      ;;
-    feature)
-      echo "feature"
-      ;;
-    enhancement)
-      echo "enhancement"
-      ;;
-    task)
-      echo "task"
-      ;;
-    *)
-      # Fallback to issue_type as-is
-      echo "$issue_type"
-      ;;
-  esac
+  # Source the extracted functions
+  . "$BRANCH_FUNCTIONS_TEMP_SCRIPT"
 
   return 0
 }
 
+##
+# @description Cleanup test environment by removing temporary script
+# @noargs
+# @exitcode 0 Always successful
+##
+cleanup_branch_functions() {
+  if [ -n "$BRANCH_FUNCTIONS_TEMP_SCRIPT" ] && [ -f "$BRANCH_FUNCTIONS_TEMP_SCRIPT" ]; then
+    rm -f "$BRANCH_FUNCTIONS_TEMP_SCRIPT"
+  fi
+  return 0
+}
+
 # =============================================================================
-# T2: Subcommand Routing Functions (Simplified for Testing)
+# Mock Functions
 # =============================================================================
 
 ##
-# @brief Route subcommand for testing purposes
-# @description Simplified routing logic for integration tests
-# @param $1 Subcommand (new, commit, or empty for default)
-# @return 0 for valid subcommand (new, commit), 1 for invalid
-# @stdout Routed subcommand name
+# @brief Mock Codex-MCP command for testing
+# @description Simulates Codex-MCP behavior without actual API calls
+# @param --prompt Prompt string (contains title and issue type)
+# @return 0 on success, 1 on failure (based on prompt content)
+# @stdout Mocked domain inference result
 # @example
-#   result=$(route_subcommand "new")
-#   # Returns: "new"
-#   result=$(route_subcommand "")
-#   # Returns: "new" (default)
+#   result=$(mock_codex_mcp --prompt "Title: Add feature, Type: feature")
 ##
-route_subcommand() {
-  local subcommand="${1:-new}"
+mock_codex_mcp() {
+  local prompt=""
 
-  case "$subcommand" in
-    new)
-      echo "new"
-      return 0
-      ;;
-    commit)
-      echo "commit"
-      return 0
-      ;;
-    *)
-      echo "Unknown subcommand: $subcommand" >&2
-      return 1
-      ;;
-  esac
+  # Parse --prompt argument
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --prompt)
+        prompt="$2"
+        shift 2
+        ;;
+      *)
+        shift
+        ;;
+    esac
+  done
+
+  # Extract title from prompt (simplified pattern matching)
+  if [[ "$prompt" =~ \"([^\"]+)\" ]]; then
+    local title="${BASH_REMATCH[1]}"
+
+    # Simple domain inference based on keywords
+    case "$title" in
+      *"/idd-issue"*|*"claude-commands"*)
+        echo "claude-commands"
+        return 0
+        ;;
+      *"xcp.sh"*|*"scripts"*)
+        echo "scripts"
+        return 0
+        ;;
+      *"README"*|*"docs"*)
+        echo "docs"
+        return 0
+        ;;
+      *"Add"*|*"Implement"*)
+        echo "feature"
+        return 0
+        ;;
+      *"Fix"*)
+        echo "bugfix"
+        return 0
+        ;;
+      *)
+        # Unknown case - simulate failure
+        return 1
+        ;;
+    esac
+  fi
+
+  # No title found - simulate failure
+  return 1
+}
+
+# =============================================================================
+# Mock Command Alias
+# =============================================================================
+
+##
+# @brief Alias 'claude' command to mock_codex_mcp for tests
+# @description This allows tests to use "claude mcp__codex-mcp__codex --prompt ..."
+#   which will be intercepted by the mock function
+# @note This should be set up in test environment before running tests
+##
+claude() {
+  if [[ "$1" == "mcp__codex-mcp__codex" ]]; then
+    shift
+    mock_codex_mcp "$@"
+  else
+    # Fallback to actual claude command (if needed)
+    command claude "$@"
+  fi
 }
