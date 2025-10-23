@@ -1,9 +1,8 @@
+#!/bin/bash
 # Copyright (c) 2025 Furukawa Atsushi <atsushifx@gmail.com>
 #
 # This software is released under the MIT License.
 # https://opensource.org/licenses/MIT
-
-#!/bin/bash
 ##
 # IDD Environment Setup Library
 #
