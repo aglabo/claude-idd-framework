@@ -40,6 +40,7 @@ _save_issue_session() {
   local new_command="$4"
 
   # Build session data as associative array
+  # shellcheck disable=SC2034  # session_data used by _save_session via nameref
   declare -A session_data=(
     [SESSION_VERSION]="$SESSION_VERSION"
     [SESSION_FORMAT]="$SESSION_FORMAT"
@@ -91,7 +92,9 @@ _load_issue_session() {
   # LAST_* 変数を標準変数名に変換
   # 可変データ（小文字）
   filename="${LAST_ISSUE_FILE:-}"
+  # shellcheck disable=SC2034  # Used by external callers
   issue_number="${LAST_ISSUE_NUMBER:-}"
+  # shellcheck disable=SC2034  # Used by external callers
   command="${LAST_COMMAND:-}"
 
   # 不変データ（大文字）
