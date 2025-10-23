@@ -22,11 +22,36 @@ The primary purpose is to establish consistent development practices across proj
 .claude/
 ├── commands/             # Custom slash commands for Claude Code
 │   ├── idd-commit-message.md  # Generate Conventional Commits messages
-│   ├── idd-issue.md           # Create structured GitHub Issues
+│   ├── idd-issue.md           # Create structured GitHub Issues (main command)
 │   ├── idd-pr.md              # Generate Pull Request drafts
 │   ├── sdd.md                 # Spec-Driven Development workflow
 │   ├── serena.md              # Serena MCP integration
-│   └── validate-debug.md      # 6-stage quality validation workflow
+│   ├── validate-debug.md      # 6-stage quality validation workflow
+│   ├── idd/                   # IDD subcommands
+│   │   └── issue/             # Issue management subcommands
+│   │       ├── new.md         # Issue creation subcommand
+│   │       ├── list.md        # Issue listing subcommand
+│   │       ├── load.md        # GitHub Issue import
+│   │       ├── edit.md        # Issue editing subcommand
+│   │       ├── push.md        # GitHub push
+│   │       └── branch.md      # Branch creation (IN PROGRESS)
+│   ├── _helpers/              # Helper command definitions
+│   │   ├── _get-summary.md      # Title/summary validation & generation
+│   │   ├── _edit-summary.md     # Interactive summary editing
+│   │   ├── _get-issue-types.md  # AI-based type determination
+│   │   └── _select-from-list.md # Interactive list selection
+│   ├── _libs/                 # Shared shell libraries for commands
+│   │   ├── filename-utils.lib.sh
+│   │   ├── idd-env.lib.sh
+│   │   ├── idd-file-ops.lib.sh
+│   │   ├── idd-git-ops.lib.sh
+│   │   ├── idd-session.lib.sh
+│   │   ├── idd-subcommand-session.lib.sh
+│   │   └── io-utils.lib.sh
+│   └── __tests__/             # Tests for slash commands
+│       ├── __helpers/         # Test helper functions
+│       ├── unit/              # Unit tests
+│       └── functional/        # Functional tests
 
 └── agents/               # Custom agents for Claude Code
     ├── bdd-coder.md                # BDD implementation with strict Red-Green-Refactor
@@ -42,19 +67,19 @@ docs/
 │   ├── 04-custom-slash-commands.md   # Slash command authoring guide
 │   └── 05-custom-agents.md           # Agent authoring guide
 
-└── for-AI-dev-standards/ # AI development standards (project-specific)
-    ├── 01-setup-and-onboarding.md         # Environment setup & onboarding
-    ├── 02-core-principles.md              # Core principles & MCP mandatory rules
-    ├── 03-mcp-tools-usage.md              # MCP tools complete guide
-    ├── 04-code-navigation.md              # Project navigation & code search
-    ├── 05-bdd-workflow.md                 # BDD workflow & Red-Green-Refactor cycle
-    ├── 06-coding-conventions.md           # Coding conventions & MCP patterns
-    ├── 07-test-implementation.md          # Test implementation & BDD hierarchy
-    ├── 08-quality-assurance.md            # Quality gates & automated checks
-    ├── 09-document-quality-assurance.md   # Document quality criteria
-    ├── 10-templates-and-standards.md      # Source code templates & JSDoc rules
-    ├── 11-bdd-implementation-details.md   # atsushifx-style BDD implementation details
-    └── 12-shell-script-development.md     # Shell script BDD patterns
+├── for-AI-dev-standards/ # AI development standards (project-specific)
+│   ├── 01-setup-and-onboarding.md         # Environment setup & onboarding
+│   ├── 02-core-principles.md              # Core principles & MCP mandatory rules
+│   ├── 03-mcp-tools-usage.md              # MCP tools complete guide
+│   ├── 04-code-navigation.md              # Project navigation & code search
+│   ├── 05-bdd-workflow.md                 # BDD workflow & Red-Green-Refactor cycle
+│   ├── 06-coding-conventions.md           # Coding conventions & MCP patterns
+│   ├── 07-test-implementation.md          # Test implementation & BDD hierarchy
+│   ├── 08-quality-assurance.md            # Quality gates & automated checks
+│   ├── 09-document-quality-assurance.md   # Document quality criteria
+│   ├── 10-templates-and-standards.md      # Source code templates & JSDoc rules
+│   ├── 11-bdd-implementation-details.md   # atsushifx-style BDD implementation details
+│   └── 12-shell-script-development.md     # Shell script BDD patterns
 
 scripts/                  # Shell script implementations
 ├── xcp.sh                        # eXtended CoPy utility (main project) ✅ COMPLETE
@@ -243,7 +268,13 @@ Before completing any documentation work, verify:
 Use these commands directly in Claude Code:
 
 - `/idd-commit-message`: Generate Conventional Commits messages from staged changes
-- `/idd-issue [feature|bug|enhancement|task] "title"`: Create structured GitHub Issues
+- `/idd-issue`: Create structured GitHub Issues (main command, deprecated - use subcommands below)
+- `/idd:issue:new`: Create new issue drafts with AI-generated summary
+- `/idd:issue:list`: List and select issue drafts interactively
+- `/idd:issue:load`: Import GitHub Issues to local drafts
+- `/idd:issue:edit`: Edit issue drafts interactively
+- `/idd:issue:push`: Push issue drafts to GitHub
+- `/idd:issue:branch`: Create Git branches from issues (new → commit workflow)
 - `/idd-pr`: Generate Pull Request drafts from branch changes
 - `/sdd [init|req|spec|tasks|coding|commit]`: Spec-Driven Development workflow
 - `/validate-debug`: Run 6-stage comprehensive quality validation
@@ -455,7 +486,6 @@ For developing shell scripts (like `xcp.sh`), use the **SDD (Spec-Driven Develop
   - Read-only validation functions separated from side-effect functions
   - Mode-driven flexible behavior control
   - Early error return pattern throughout
-- **Reference**: See `docs/.cc-sdd/scripts/xcp/` for requirements, specs, and tasks
 - **Production Ready**: Fully documented with shdoc headers, shellcheck clean, ready for deployment
 
 **merge-json.sh** (JSON merge utility) - 🆕 NEW (2025-10-14)
