@@ -47,10 +47,10 @@ _save_issue_session() {
     [LAST_ISSUE_FILE]="$new_filename"
     [LAST_ISSUE_NUMBER]="$new_issue_number"
     [LAST_COMMAND]="$new_command"
-    [TITLE]="${TITLE:-}"
-    [ISSUE_TYPE]="${ISSUE_TYPE:-}"
-    [COMMIT_TYPE]="${COMMIT_TYPE:-}"
-    [BRANCH_TYPE]="${BRANCH_TYPE:-}"
+    [LAST_ISSUE_TITLE]="${TITLE:-}"
+    [LAST_ISSUE_TYPE]="${ISSUE_TYPE:-}"
+    [LAST_COMMIT_TYPE]="${COMMIT_TYPE:-}"
+    [LAST_BRANCH_TYPE]="${BRANCH_TYPE:-}"
   )
 
   # Use _save_session library function
@@ -164,6 +164,10 @@ _save_session() {
     echo "# Last session"
 
     for key in "${!data[@]}"; do
+      # Skip readonly variables (SESSION_VERSION, SESSION_FORMAT)
+      if [[ "$key" == "SESSION_VERSION" || "$key" == "SESSION_FORMAT" ]]; then
+        continue
+      fi
       echo "$key=\"${data[$key]}\""
     done
 
