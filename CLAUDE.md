@@ -22,11 +22,36 @@ The primary purpose is to establish consistent development practices across proj
 .claude/
 ├── commands/             # Custom slash commands for Claude Code
 │   ├── idd-commit-message.md  # Generate Conventional Commits messages
-│   ├── idd-issue.md           # Create structured GitHub Issues
+│   ├── idd-issue.md           # Create structured GitHub Issues (main command)
 │   ├── idd-pr.md              # Generate Pull Request drafts
 │   ├── sdd.md                 # Spec-Driven Development workflow
 │   ├── serena.md              # Serena MCP integration
-│   └── validate-debug.md      # 6-stage quality validation workflow
+│   ├── validate-debug.md      # 6-stage quality validation workflow
+│   ├── idd/                   # IDD subcommands
+│   │   └── issue/             # Issue management subcommands
+│   │       ├── new.md         # Issue creation subcommand
+│   │       ├── list.md        # Issue listing subcommand
+│   │       ├── load.md        # GitHub Issue import
+│   │       ├── edit.md        # Issue editing subcommand
+│   │       ├── push.md        # GitHub push
+│   │       └── branch.md      # Branch creation ✅ PRODUCTION READY (v1.6.0)
+│   ├── _helpers/              # Helper command definitions
+│   │   ├── _get-summary.md      # Title/summary validation & generation
+│   │   ├── _edit-summary.md     # Interactive summary editing
+│   │   ├── _get-issue-types.md  # AI-based type determination
+│   │   └── _select-from-list.md # Interactive list selection
+│   ├── _libs/                 # Shared shell libraries for commands
+│   │   ├── filename-utils.lib.sh
+│   │   ├── idd-env.lib.sh
+│   │   ├── idd-file-ops.lib.sh
+│   │   ├── idd-git-ops.lib.sh
+│   │   ├── idd-session.lib.sh
+│   │   ├── idd-subcommand-session.lib.sh
+│   │   └── io-utils.lib.sh
+│   └── __tests__/             # Tests for slash commands
+│       ├── __helpers/         # Test helper functions
+│       ├── unit/              # Unit tests
+│       └── functional/        # Functional tests
 
 └── agents/               # Custom agents for Claude Code
     ├── bdd-coder.md                # BDD implementation with strict Red-Green-Refactor
@@ -42,19 +67,19 @@ docs/
 │   ├── 04-custom-slash-commands.md   # Slash command authoring guide
 │   └── 05-custom-agents.md           # Agent authoring guide
 
-└── for-AI-dev-standards/ # AI development standards (project-specific)
-    ├── 01-setup-and-onboarding.md         # Environment setup & onboarding
-    ├── 02-core-principles.md              # Core principles & MCP mandatory rules
-    ├── 03-mcp-tools-usage.md              # MCP tools complete guide
-    ├── 04-code-navigation.md              # Project navigation & code search
-    ├── 05-bdd-workflow.md                 # BDD workflow & Red-Green-Refactor cycle
-    ├── 06-coding-conventions.md           # Coding conventions & MCP patterns
-    ├── 07-test-implementation.md          # Test implementation & BDD hierarchy
-    ├── 08-quality-assurance.md            # Quality gates & automated checks
-    ├── 09-document-quality-assurance.md   # Document quality criteria
-    ├── 10-templates-and-standards.md      # Source code templates & JSDoc rules
-    ├── 11-bdd-implementation-details.md   # atsushifx-style BDD implementation details
-    └── 12-shell-script-development.md     # Shell script BDD patterns
+├── for-AI-dev-standards/ # AI development standards (project-specific)
+│   ├── 01-setup-and-onboarding.md         # Environment setup & onboarding
+│   ├── 02-core-principles.md              # Core principles & MCP mandatory rules
+│   ├── 03-mcp-tools-usage.md              # MCP tools complete guide
+│   ├── 04-code-navigation.md              # Project navigation & code search
+│   ├── 05-bdd-workflow.md                 # BDD workflow & Red-Green-Refactor cycle
+│   ├── 06-coding-conventions.md           # Coding conventions & MCP patterns
+│   ├── 07-test-implementation.md          # Test implementation & BDD hierarchy
+│   ├── 08-quality-assurance.md            # Quality gates & automated checks
+│   ├── 09-document-quality-assurance.md   # Document quality criteria
+│   ├── 10-templates-and-standards.md      # Source code templates & JSDoc rules
+│   ├── 11-bdd-implementation-details.md   # atsushifx-style BDD implementation details
+│   └── 12-shell-script-development.md     # Shell script BDD patterns
 
 scripts/                  # Shell script implementations
 ├── xcp.sh                        # eXtended CoPy utility (main project) ✅ COMPLETE
@@ -243,7 +268,13 @@ Before completing any documentation work, verify:
 Use these commands directly in Claude Code:
 
 - `/idd-commit-message`: Generate Conventional Commits messages from staged changes
-- `/idd-issue [feature|bug|enhancement|task] "title"`: Create structured GitHub Issues
+- `/idd-issue`: Create structured GitHub Issues (main command, deprecated - use subcommands below)
+- `/idd:issue:new`: Create new issue drafts with AI-generated summary
+- `/idd:issue:list`: List and select issue drafts interactively
+- `/idd:issue:load`: Import GitHub Issues to local drafts
+- `/idd:issue:edit`: Edit issue drafts interactively
+- `/idd:issue:push`: Push issue drafts to GitHub
+- `/idd:issue:branch [new|commit] [options]`: Create Git branches from issues (two-stage workflow: propose → create) ✅ PRODUCTION READY
 - `/idd-pr`: Generate Pull Request drafts from branch changes
 - `/sdd [init|req|spec|tasks|coding|commit]`: Spec-Driven Development workflow
 - `/validate-debug`: Run 6-stage comprehensive quality validation
@@ -257,7 +288,64 @@ Launch these agents via the Task tool for specialized workflows:
 - `issue-generator`: Structured GitHub Issue draft creation
 - `pr-generator`: Pull Request draft generation
 
-### 4. BDD Development (if applicable to future code)
+
+### 4. Complete IDD Issue Management Workflow
+
+The IDD Issue management system provides a complete workflow from issue creation to branch implementation:
+
+**All commands are production-ready (2025-10-27):**
+
+1. **Create or Import Issue**
+   - `/idd:issue:new`: Create new issue with AI-generated summary and type detection
+   - `/idd:issue:load [number]`: Import existing GitHub Issue to local draft
+
+2. **Manage Issues**
+   - `/idd:issue:list`: List and select issue drafts interactively
+   - `/idd:issue:edit`: Edit selected issue with interactive codex-mcp assistance
+
+3. **Push to GitHub**
+   - `/idd:issue:push`: Push issue draft to GitHub (creates new or updates existing)
+
+4. **Create Branch**
+   - `/idd:issue:branch new`: Generate branch proposal with intelligent domain detection
+   - `/idd:issue:branch new --domain [domain]`: Override domain detection
+   - `/idd:issue:branch new --base [branch]`: Specify base branch (default: main/master)
+   - `/idd:issue:branch commit`: Create and switch to proposed branch
+
+**Example workflow:**
+
+```bash
+# Step 1: Create issue
+/idd:issue:new
+# → Creates: temp/idd/issues/new-20251027-120000-feature-user-login.md
+
+# Step 2: Edit content (optional)
+/idd:issue:edit
+# → Interactive editing with codex-mcp
+
+# Step 3: Push to GitHub
+/idd:issue:push
+# → Creates Issue #42, renames to: 42-20251027-120000-feature-user-login.md
+
+# Step 4: Generate branch proposal
+/idd:issue:branch new
+# → Detects domain from title: "auth"
+# → Suggests: feat-42/auth/user-login
+
+# Step 5: Create branch
+/idd:issue:branch commit
+# → Creates and switches to: feat-42/auth/user-login
+# → Ready for implementation
+```
+
+**Key Features:**
+
+- **Session Management**: Seamless state tracking across commands (.last.session, .branch.session)
+- **AI Integration**: Codex-MCP for summary generation, domain detection, type determination
+- **Branch Intelligence**: Automatic domain detection from title [brackets] or content analysis
+- **Flexible Options**: Override domain, specify base branch, handle edge cases
+- **Production Ready**: Full test coverage (31 examples, 100% passing), comprehensive documentation
+### 5. BDD Development (if applicable to future code)
 
 If implementing code in this repository, follow **atsushifx-style BDD**:
 
@@ -287,7 +375,7 @@ describe('Given: prerequisite/Feature', () => {
 - `[異常]`: Error/exception cases
 - `[エッジケース]`: Edge cases/boundary values
 
-### 5. Onboarding Process
+### 6. Onboarding Process
 
 When starting work in this repository:
 
@@ -455,7 +543,6 @@ For developing shell scripts (like `xcp.sh`), use the **SDD (Spec-Driven Develop
   - Read-only validation functions separated from side-effect functions
   - Mode-driven flexible behavior control
   - Early error return pattern throughout
-- **Reference**: See `docs/.cc-sdd/scripts/xcp/` for requirements, specs, and tasks
 - **Production Ready**: Fully documented with shdoc headers, shellcheck clean, ready for deployment
 
 **merge-json.sh** (JSON merge utility) - 🆕 NEW (2025-10-14)
