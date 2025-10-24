@@ -50,9 +50,13 @@ Describe '/idd:issue:branch new subcommand - T7 integration'
       ISSUE_TYPE="feature"
       BRANCH_TYPE="feat"
 
+      # Generate filename dynamically
+      local filename
+      filename=$(generate_issue_filename "$TITLE" "$ISSUE_TYPE")
+
       # Save session using library function
       _save_issue_session "$TEST_SESSION_FILE" \
-        "new-251023-120000-feature-add-branch-command.md" \
+        "$filename" \
         "" \
         "/idd:issue:list"
 
@@ -159,9 +163,13 @@ Describe '/idd:issue:branch new subcommand - T7 integration'
       ISSUE_TYPE="feature"
       BRANCH_TYPE="feat"
 
+      # Generate filename dynamically
+      local filename
+      filename=$(generate_issue_filename "$TITLE" "$ISSUE_TYPE")
+
       # Save session using library function
       _save_issue_session "$TEST_SESSION_FILE" \
-        "new-251023-120000-feature-add-branch-command.md" \
+        "$filename" \
         "" \
         "list"
     }
@@ -244,6 +252,87 @@ Describe '/idd:issue:branch new subcommand - T7 integration'
 
         # Logic test: different branch means switch required
         The variable current_branch should not equal "$base_branch"
+      End
+    End
+  End
+
+  # ============================================================================
+  # Filename generation integration tests
+  # ============================================================================
+
+  Describe 'Given: Issue filename generation requirements'
+    Context 'When: Generating filename for English title'
+      It 'Then: [正常] - creates valid filename with proper slug'
+        # Arrange
+        title="Add User Authentication Feature"
+        issue_type="feature"
+        issue_no="42"
+
+        # Act
+        filename=$(generate_issue_filename "$title" "$issue_type" "$issue_no")
+
+        # Assert: Format {issue_no}-{timestamp}-{type}-{slug}.md
+        The variable filename should match pattern "42-[0-9]*-feature-add-user-authentication.md"
+      End
+
+      It 'Then: [正常] - creates new issue filename with "new" prefix'
+        title="Fix Login Bug"
+        issue_type="bug"
+
+        filename=$(generate_issue_filename "$title" "$issue_type")
+
+        The variable filename should match pattern "new-[0-9]*-bug-fix-login-bug.md"
+      End
+    End
+
+    Context 'When: Generating filename with special characters'
+      It 'Then: [正常] - sanitizes special characters in slug'
+        title="Update Config (JSON) & API Settings!"
+        issue_type="enhancement"
+        issue_no="15"
+
+        filename=$(generate_issue_filename "$title" "$issue_type" "$issue_no")
+
+        # Special chars replaced with hyphens
+        The variable filename should match pattern "15-[0-9]*-enhancement-update-config-json-api*.md"
+      End
+
+      It 'Then: [正常] - handles slashes and backslashes'
+        title="Fix Path/To\\File Issue"
+        issue_type="bug"
+        issue_no="23"
+
+        filename=$(generate_issue_filename "$title" "$issue_type" "$issue_no")
+
+        The variable filename should match pattern "23-[0-9]*-bug-fix-path-to-file-issue.md"
+      End
+    End
+
+    Context 'When: Generating filename with long title'
+      It 'Then: [正常] - truncates slug at word boundary'
+        title="This is an extremely long issue title that needs to be truncated properly"
+        issue_type="task"
+        issue_no="100"
+
+        filename=$(generate_issue_filename "$title" "$issue_type" "$issue_no")
+
+        # Slug truncated to 30 chars max, no trailing hyphen
+        The variable filename should match pattern "100-[0-9]*-task-this-is-an-extremely-long.md"
+        The variable filename should not match pattern "*--*.md"
+      End
+    End
+
+    Context 'When: Generating filename with Japanese title'
+      It 'Then: [正常] - translates Japanese to English slug'
+        title="ユーザー認証機能を追加"
+        issue_type="feature"
+        issue_no="50"
+
+        filename=$(generate_issue_filename "$title" "$issue_type" "$issue_no")
+
+        # Japanese should be translated to English slug
+        The variable filename should match pattern "50-[0-9]*-feature-*.md"
+        The variable filename should not include "ユーザー"
       End
     End
   End
