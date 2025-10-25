@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# skip shellspec
 # shellcheck shell=bash
 # src: ./.claude/commands/__tests__/integration/filename-utils-translation.integration.spec.sh
 # @(#): Integration tests for generate_slug() translation feature
