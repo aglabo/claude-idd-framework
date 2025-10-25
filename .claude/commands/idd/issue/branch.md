@@ -510,6 +510,28 @@ validate_git_state() {
 }
 
 ##
+# @brief Check if a Git branch exists
+# @description Verifies branch existence using git rev-parse
+# @param $1 Branch name to check
+# @return 0 if branch exists, 1 if not
+# @example
+#   if check_branch_exists "feat-27/test"; then
+#     echo "Branch exists"
+#   else
+#     echo "Branch does not exist"
+#   fi
+##
+check_branch_exists() {
+  local branch_name="$1"
+  
+  # Use git rev-parse to check branch existence
+  # --verify: Check if reference exists
+  # --quiet: Suppress output
+  git rev-parse --verify --quiet "$branch_name" > /dev/null 2>&1
+  return $?
+}
+
+##
 # @brief Generate Git branch name from issue information
 # @description Constructs branch name in format: {type}-{number}/{domain}/{slug}
 # @param $1 Branch type (e.g., "feat", "fix", "docs")
