@@ -585,6 +585,56 @@ determine_base_branch() {
 }
 
 ##
+# @brief Create new Git branch from base branch
+# @description Creates a new branch from the specified base branch.
+#   If current branch differs from base, switches to base first.
+#   Validates base branch existence before creation.
+# @param $1 new_branch - Name of the branch to create
+# @param $2 base_branch - Base branch to create from
+# @return 0 on success
+# @return 6 on git operation failure
+# @return 7 on base branch not found
+# @example
+#   create_branch "feat-27/new-feature" "main"
+#   create_branch "fix-28/bugfix" "develop"
+##
+create_branch() {
+  local new_branch="$1"
+  local base_branch="$2"
+
+  # Get current branch
+  local current_branch
+  current_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+
+  # T11-3: Verify base branch exists
+  if ! check_branch_exists "$base_branch"; then
+    echo "❌ Base branch does not exist: $base_branch" >&2
+    return 7
+  fi
+
+  # T11-1: Check if already on base branch
+  if [ "$current_branch" = "$base_branch" ]; then
+    echo "✓ Already on base branch: $base_branch"
+  else
+    # T11-2: Switch to base branch
+    echo "→ Switching to base branch: $base_branch"
+    if ! git switch "$base_branch" 2>/dev/null; then
+      echo "❌ Failed to switch to base branch: $base_branch" >&2
+      return 6
+    fi
+  fi
+
+  # Create new branch
+  if ! git switch -c "$new_branch" 2>/dev/null; then
+    echo "❌ Failed to create branch: $new_branch" >&2
+    return 6
+  fi
+
+  echo "✓ Branch created successfully: $new_branch"
+  return 0
+}
+
+##
 # @brief Save branch session to .branch.session file
 # @description Saves branch proposal information including suggested branch name,
 #   domain, base branch, issue number, and timestamp
