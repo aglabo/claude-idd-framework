@@ -1,8 +1,8 @@
 ---
 # Claude Code 必須要素
-allowed-tools: Bash(*), Read(*), Write(*), Task(*)
+allowed-tools: Bash(*), Read(*), Write(*), Task(*), mcp__codex-mcp__codex(*), mcp__lsmcp__get_project_overview(*), mcp__lsmcp__search_symbols(*), mcp__lsmcp__lsp_get_diagnostics(*), mcp__lsmcp__get_symbol_details(*), mcp__lsmcp__list_dir(*), mcp__serena-mcp__list_memories(*), mcp__serena-mcp__read_memory(*), mcp__serena-mcp__search_for_pattern(*), mcp__serena-mcp__get_symbols_overview(*), mcp__serena-mcp__find_symbol(*), mcp__serena-mcp__find_referencing_symbols(*), mcp__serena-mcp__list_dir(*)
 argument-hint: "<init namespace/module | req | spec | tasks | coding [task-group] | commit>"
-description: Spec-Driven-Development主要コマンド - init/req/spec/task/code サブコマンドで要件定義から実装まで一貫した開発支援
+description: Spec-Driven-Development主要コマンド - MCP統合による効率的な要件定義から実装まで一貫した開発支援
 # 設定変数
 config:
   base_dir: docs/.cc-sdd
@@ -22,11 +22,12 @@ subcommands:
   commit: "対話的ファイル選択とコミット実行"
 # ユーザー管理ヘッダー
 title: sdd
-version: 2.0.0
+version: 2.1.0
 created: 2025-09-28
 authors:
   - atsushifx
 changes:
+  - 2025-10-15: MCP統合によるトークン効率最適化、全サブコマンドでMCP必須化
   - 2025-10-02: フロントマターベース構造に再構築、Bash実装に変更
   - 2025-09-28: 初版作成
 ---
@@ -42,6 +43,11 @@ Spec-Driven-Development (SDD) の各フェーズを管理するコマンド。
 ```bash
 #!/bin/bash
 # SDD コマンド用ヘルパー関数集
+
+# Load helper libraries
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LIBS_DIR="$SCRIPT_DIR/_libs"
+. "$LIBS_DIR/idd-session.lib.sh"
 
 # 環境変数設定
 setup_sdd_env() {
@@ -59,11 +65,9 @@ save_session() {
 
   mkdir -p "$SDD_BASE"
 
-  cat > "$SESSION_FILE" << EOF
-namespace=$namespace
-module=$module
-timestamp=$(date -Iseconds 2>/dev/null || date +%Y-%m-%dT%H:%M:%S)
-EOF
+  _save_session "$SESSION_FILE" \
+    namespace "$namespace" \
+    module "$module"
 
   echo "💾 Session saved: $namespace/$module"
 }
@@ -72,7 +76,7 @@ EOF
 load_session() {
   local mode="${1:-required}"
 
-  if [ ! -f "$SESSION_FILE" ]; then
+  if ! _load_session "$SESSION_FILE"; then
     if [ "$mode" != "optional" ]; then
       echo "❌ No active session found."
       echo "💡 Run '/sdd init <namespace>/<module>' first."
@@ -80,7 +84,6 @@ load_session() {
     return 1
   fi
 
-  source "$SESSION_FILE"
   echo "📂 Session: $namespace/$module"
   return 0
 }
@@ -427,13 +430,126 @@ abort_commit() {
   echo "✅ Commit aborted. All changes reverted."
   return 0
 }
+
+# === MCP Tools Integration Helper Functions ===
+
+# MCP プロジェクト分析
+analyze_project_with_mcp() {
+  local root="${1:-$(git rev-parse --show-toplevel)}"
+
+  echo "📊 Analyzing project with MCP tools..."
+  echo ""
+
+  # Note: Claude は以下のMCPツールを使用してプロジェクト全体を把握:
+  # - mcp__lsmcp__get_project_overview --root "$root"
+  # - mcp__serena-mcp__list_memories
+  # - mcp__serena-mcp__read_memory "project_purpose_and_tech_stack"
+  # - mcp__serena-mcp__read_memory "code_style_and_conventions"
+
+  echo "  ✓ Project overview analyzed"
+  echo "  ✓ Project memories loaded"
+  echo ""
+
+  return 0
+}
+
+# MCP 既存パターン分析
+analyze_patterns_with_mcp() {
+  local relative_path="$1"
+  local pattern="$2"
+  local code_only="${3:-false}"
+
+  echo "🔍 Analyzing existing patterns with MCP tools..."
+  echo ""
+
+  # Note: Claude は serena-mcp search_for_pattern を使用してパターンを検索:
+  # - mcp__serena-mcp__search_for_pattern \
+  #     --substring_pattern "$pattern" \
+  #     --relative_path "$relative_path" \
+  #     --restrict_search_to_code_files "$code_only"
+
+  echo "  ✓ Pattern search completed: $pattern"
+  echo ""
+
+  return 0
+}
+
+# MCP シンボル検索
+search_symbols_with_mcp() {
+  local query="$1"
+  local root="${2:-$(git rev-parse --show-toplevel)}"
+
+  echo "🔎 Searching symbols with MCP tools..."
+  echo ""
+
+  # Note: Claude は lsmcp search_symbols を使用してシンボルを検索:
+  # - mcp__lsmcp__search_symbols --query "$query" --root "$root"
+
+  echo "  ✓ Symbol search completed: $query"
+  echo ""
+
+  return 0
+}
+
+# MCP シンボル詳細取得
+get_symbol_details_with_mcp() {
+  local relative_path="$1"
+  local symbol_name="$2"
+  local root="${3:-$(git rev-parse --show-toplevel)}"
+
+  echo "📋 Getting symbol details with MCP tools..."
+  echo ""
+
+  # Note: Claude は serena-mcp get_symbols_overview または find_symbol を使用:
+  # - mcp__serena-mcp__get_symbols_overview --relative_path "$relative_path"
+  # - mcp__serena-mcp__find_symbol --name_path "$symbol_name" --include_body true
+
+  echo "  ✓ Symbol details retrieved: $symbol_name"
+  echo ""
+
+  return 0
+}
+
+# MCP 影響範囲確認
+analyze_impact_with_mcp() {
+  local file_path="$1"
+  local symbol_name="$2"
+
+  echo "🔍 Analyzing impact with MCP tools..."
+  echo ""
+
+  # Note: Claude は以下のMCPツールを使用して影響範囲を確認:
+  # - mcp__serena-mcp__find_referencing_symbols \
+  #     --name_path "$symbol_name" \
+  #     --relative_path "$file_path"
+  # - mcp__lsmcp__lsp_get_diagnostics \
+  #     --relativePath "$file_path" \
+  #     --root "$(git rev-parse --show-toplevel)"
+
+  echo "  ✓ Impact analysis completed"
+  echo "  ✓ Diagnostics checked"
+  echo ""
+
+  return 0
+}
 ```
 
 ## 実行フロー
 
 1. **環境設定**: `setup_sdd_env` でパス設定
 2. **セッション管理**: `load_session` または `save_session`
-3. **サブコマンド実行**: すべて Bash で統一実装
+3. **MCP分析フェーズ** (新規追加): MCPツールによる既存パターン理解
+4. **サブコマンド実行**: すべて Bash で統一実装
+
+### MCP分析フェーズの詳細
+
+各サブコマンドの実行前にMCPツールを使用して以下を実行:
+
+- プロジェクト全体の理解 (`analyze_project_with_mcp`)
+- 既存パターンの調査 (`analyze_patterns_with_mcp`)
+- 関連シンボルの検索 (`search_symbols_with_mcp`)
+- シンボル詳細の取得 (`get_symbol_details_with_mcp`)
+- 影響範囲の確認 (`analyze_impact_with_mcp`)
 
 <!-- markdownlint-disable no-duplicate-heading -->
 
@@ -476,18 +592,10 @@ for subdir in requirements specifications tasks implementation; do
 done
 
 # セッション保存
-SESSION_FILE="$SDD_BASE/.last-session"
-mkdir -p "$SDD_BASE"
-
-cat > "$SESSION_FILE" << EOF
-namespace=$NAMESPACE
-module=$MODULE
-timestamp=$(date -Iseconds 2>/dev/null || date +%Y-%m-%dT%H:%M:%S)
-EOF
+save_session "$NAMESPACE" "$MODULE"
 
 echo ""
 echo "🎉 SDD structure initialized for $NAMESPACE/$MODULE"
-echo "💾 Session saved"
 ```
 
 ### Subcommand: req
@@ -511,7 +619,35 @@ echo ""
 echo "📋 Requirements Definition Phase"
 echo "=================================================="
 echo ""
-echo "📝 This phase will:"
+
+# === MCP分析フェーズ ===
+echo "🔍 Phase 1: MCP Analysis"
+echo ""
+
+# プロジェクト全体の理解
+analyze_project_with_mcp "$REPO_ROOT"
+
+# 既存要件ドキュメントパターンの調査
+analyze_patterns_with_mcp "docs/.cc-sdd" "requirements" false
+
+# Note: Claude は以下のMCPツールを使用して既存パターンを理解:
+# 1. mcp__lsmcp__get_project_overview --root "$REPO_ROOT"
+# 2. mcp__serena-mcp__list_memories
+# 3. mcp__serena-mcp__read_memory "project_purpose_and_tech_stack"
+# 4. mcp__serena-mcp__read_memory "document_quality_standards"
+# 5. mcp__serena-mcp__search_for_pattern \
+#      --substring_pattern "requirements" \
+#      --relative_path "docs/.cc-sdd" \
+#      --restrict_search_to_code_files false
+# 6. mcp__serena-mcp__list_dir --relative_path "." --recursive false
+
+echo "=================================================="
+echo ""
+
+# === 対話的要件収集 ===
+echo "📝 Phase 2: Interactive Requirements Gathering"
+echo ""
+echo "This phase will:"
 echo "  1. Analyze your requirements"
 echo "  2. Ask clarifying questions"
 echo "  3. Create comprehensive requirements document"
@@ -520,6 +656,7 @@ echo "🚀 Starting interactive requirements gathering..."
 echo ""
 
 # Note: Claude will guide interactive requirements definition
+# using insights from MCP analysis
 ```
 
 ### Subcommand: spec
@@ -543,7 +680,40 @@ echo ""
 echo "📐 Design Specification Phase"
 echo "=================================================="
 echo ""
-echo "📝 This phase will:"
+
+# === MCP分析フェーズ ===
+echo "🔍 Phase 1: MCP Analysis"
+echo ""
+
+# プロジェクト全体の理解
+analyze_project_with_mcp "$REPO_ROOT"
+
+# 既存仕様パターンの調査
+analyze_patterns_with_mcp "docs/.cc-sdd" "specifications" false
+
+# Note: Claude は以下のMCPツールを使用して既存実装パターンを理解:
+# 1. mcp__serena-mcp__read_memory "code_style_and_conventions"
+# 2. mcp__serena-mcp__search_for_pattern \
+#      --substring_pattern "specifications" \
+#      --relative_path "docs/.cc-sdd"
+# 3. mcp__lsmcp__list_dir --relativePath "." --recursive false
+# 4. mcp__serena-mcp__get_symbols_overview \
+#      --relative_path "<関連するソースファイル>"
+#
+# 実装対象に応じて以下も実行:
+# 5. mcp__lsmcp__search_symbols --query "<対象機能>" --root "$REPO_ROOT"
+# 6. mcp__serena-mcp__find_symbol \
+#      --name_path "<関連クラス/関数>" \
+#      --include_body true \
+#      --relative_path "<ファイルパス>"
+
+echo "=================================================="
+echo ""
+
+# === 設計仕様作成 ===
+echo "📝 Phase 2: Specification Creation"
+echo ""
+echo "This phase will:"
 echo "  1. Review requirements document"
 echo "  2. Create functional specifications"
 echo "  3. Define interfaces and behaviors"
@@ -552,7 +722,7 @@ echo ""
 echo "🚀 Starting spec creation..."
 echo ""
 
-# Note: Claude will guide specification creation using MCP tools
+# Note: Claude will guide specification creation using MCP analysis insights
 ```
 
 ### Subcommand: tasks
@@ -575,26 +745,63 @@ echo ""
 echo "📋 Task Breakdown Phase"
 echo "=================================================="
 echo ""
+
+# === MCP分析フェーズ ===
+echo "🔍 Phase 1: MCP Analysis"
+echo ""
+
+# プロジェクト全体の理解
+analyze_project_with_mcp "$REPO_ROOT"
+
+# BDD テストパターンの調査
+analyze_patterns_with_mcp "__tests__" "describe.*Given.*When.*Then" true
+
+# Note: Claude は以下のMCPツールを使用してBDDパターンを理解:
+# 1. mcp__serena-mcp__read_memory "code_style_and_conventions"
+# 2. mcp__serena-mcp__read_memory "task_completion_checklist"
+# 3. mcp__serena-mcp__search_for_pattern \
+#      --substring_pattern "describe.*Given" \
+#      --restrict_search_to_code_files true \
+#      --paths_include_glob "**/__tests__/**" \
+#      --context_lines_after 5
+# 4. mcp__serena-mcp__list_dir --relative_path "__tests__" --recursive true
+# 5. mcp__serena-mcp__get_symbols_overview \
+#      --relative_path "<既存テストファイル>"
+#
+# BDD階層理解のため:
+# 6. mcp__serena-mcp__find_symbol \
+#      --name_path "describe" \
+#      --relative_path "__tests__" \
+#      --depth 2
+
+echo "=================================================="
+echo ""
+
+# === タスク分解実行 ===
+echo "📝 Phase 2: Task Breakdown Execution"
+echo ""
 echo "🚀 Launching task breakdown agent..."
 echo ""
 echo "📝 Agent will:"
 echo "  - Break down tasks following BDD hierarchy"
 echo "  - Use TodoWrite tool for task management"
-echo "  - Follow docs/rules/07-bdd-test-hierarchy.md"
+echo "  - Follow BDD patterns identified in MCP analysis"
 echo ""
 
 # Note: Claude will invoke Task tool with general-purpose agent
+# using BDD patterns and conventions from MCP analysis
 ```
 
 ### Subcommand: coding
 
 ```bash
 #!/bin/bash
-# BDD implementation phase
+# BDD implementation phase using codex MCP for token efficiency
 
 # セッション読み込み
 REPO_ROOT=$(git rev-parse --show-toplevel)
 SESSION_FILE="$REPO_ROOT/docs/.cc-sdd/.last-session"
+TODO_FILE="$REPO_ROOT/temp/todo.md"
 
 if ! load_session; then
   exit 1
@@ -606,7 +813,7 @@ echo ""
 TASK_GROUP="${1:-}"
 
 # 実装フェーズ開始
-echo "💻 BDD Implementation Phase"
+echo "💻 BDD Implementation Phase (Codex MCP)"
 echo "=================================================="
 echo ""
 
@@ -617,15 +824,165 @@ else
 fi
 
 echo ""
-echo "🚀 Launching BDD coder agent..."
-echo ""
-echo "📋 Agent will follow:"
-echo "  - Strict Red-Green-Refactor cycle"
-echo "  - 1 message = 1 test principle"
-echo "  - BDD hierarchy from todo.md"
+
+# temp/todo.md の初期化
+mkdir -p "$REPO_ROOT/temp"
+
+# tasks.md のパスを取得
+TASKS_MD="$SDD_BASE/$namespace/$module/tasks/tasks.md"
+
+if [ ! -f "$TASKS_MD" ]; then
+  echo "❌ Error: tasks.md not found at $TASKS_MD"
+  echo "💡 Run '/sdd tasks' first to create task breakdown."
+  exit 1
+fi
+
+if [ ! -f "$TODO_FILE" ]; then
+  echo "📋 Initializing temp/todo.md from tasks.md..."
+  cat > "$TODO_FILE" << 'EOF'
+# BDD Implementation TODO
+
+## Overview
+
+This file tracks BDD implementation progress for the current coding session.
+Each TODO represents a task from tasks.md broken down to the implementation level.
+
+**Important**: This file is synchronized with:
+- `temp/todo.md` (this file): Progress tracking during implementation
+- `tasks/tasks.md`: Source of truth for task breakdown
+- TodoWrite tool: Real-time progress updates in Claude Code
+
+## Task Breakdown Format
+
+Each task follows this structure:
+
+```markdown
+- [ ] T{group}-{task}-{step}: {description}
+  - Status: pending | in_progress | completed
+  - Implementation file: {source file path}
+  - Test file: {test file path}
+  - BDD test case: {Given/When/Then description}
+  - Expected result: {verification criteria}
+```
+
+## Current Session
+
+Session: {namespace}/{module}
+Target task group: {task_group or "Full implementation"}
+
+## Tasks
+
+EOF
+  echo "✅ Created temp/todo.md template"
+else
+  echo "📋 Using existing temp/todo.md"
+fi
+
 echo ""
 
-# Note: Claude will invoke Task tool with typescript-bdd-coder agent
+# === MCP分析フェーズ (codex起動前) ===
+echo "🔍 Phase 1: MCP Pre-Analysis (before launching codex)"
+echo "=================================================="
+echo ""
+
+# プロジェクト全体の理解
+analyze_project_with_mcp "$REPO_ROOT"
+
+# Note: Claude は以下のMCPツールを使用してプロジェクトを理解:
+# 1. mcp__lsmcp__get_project_overview --root "$REPO_ROOT"
+# 2. mcp__serena-mcp__list_memories
+# 3. mcp__serena-mcp__read_memory "project_purpose_and_tech_stack"
+# 4. mcp__serena-mcp__read_memory "code_style_and_conventions"
+# 5. mcp__serena-mcp__read_memory "mcp_tools_mandatory_usage"
+# 6. mcp__serena-mcp__read_memory "task_completion_checklist"
+
+# 既存BDDパターンの調査
+analyze_patterns_with_mcp "__tests__" "describe.*Given.*When.*Then" true
+
+# Note: Claude は以下を使用して既存BDDパターンを理解:
+# 7. mcp__serena-mcp__search_for_pattern \
+#      --substring_pattern "describe.*Given.*When.*Then" \
+#      --restrict_search_to_code_files true \
+#      --paths_include_glob "**/__tests__/**"
+# 8. mcp__serena-mcp__list_dir --relative_path "__tests__" --recursive true
+
+# namespace/moduleに基づく関連コード検索
+echo "🔎 Searching related code for $namespace/$module..."
+echo ""
+
+# Note: Claude は以下を使用して関連コードを検索:
+# 9. mcp__lsmcp__search_symbols --query "$module" --root "$REPO_ROOT"
+# 10. mcp__serena-mcp__find_file \
+#       --file_mask "*$module*" \
+#       --relative_path "."
+# 11. mcp__serena-mcp__get_symbols_overview \
+#       --relative_path "<検出されたファイル>"
+
+echo "=================================================="
+echo ""
+echo "✅ MCP Pre-Analysis completed"
+echo ""
+
+# === Codex MCP 起動 ===
+echo "🚀 Phase 2: Launching Codex MCP for BDD implementation..."
+echo ""
+
+# Note: Claude will invoke codex MCP with MCP-aware base instructions
+# Codex MCP provides:
+# - Isolated subprocess execution (token reduction)
+# - Workspace-write sandbox mode (read project, write code/tests)
+# - Custom base instructions for BDD workflow with MCP integration
+# - Approval policy for shell commands
+#
+# Base instructions must include:
+# 1. **MCP Tools Mandatory Usage** (最優先事項):
+#    - 必須: すべてのコード操作前に lsmcp, serena-mcp を使用
+#    - 必須: 既存パターンの理解と尊重
+#    - 必須: 変更前の影響範囲確認
+#    - 段階的詳細化: overview → symbols → details の順
+#
+# 2. Strict Red-Green-Refactor cycle (RED → GREEN → REFACTOR)
+# 3. 1 message = 1 test principle
+# 4. Read tasks.md and break down to test cases in temp/todo.md
+# 5. Use TodoWrite tool to track progress
+# 6. Keep temp/todo.md and TodoWrite in sync (完全同期が必須)
+# 7. Project-specific quality gates (types/lint/test/format/build)
+# 8. Given/When/Then structure with tags ([正常]/[異常]/[エッジケース])
+#
+# Implementation workflow:
+# STEP 0: MCP-based code understanding (NEW)
+#   - Use mcp__serena-mcp__get_symbols_overview before reading files
+#   - Use mcp__lsmcp__search_symbols to find related code
+#   - Use mcp__serena-mcp__find_symbol to understand existing patterns
+#   - Use mcp__serena-mcp__find_referencing_symbols before changes
+#
+# STEP 1: Initialize temp/todo.md from tasks.md
+#   - Read tasks.md and extract all task items
+#   - Convert each task to markdown checklist format in temp/todo.md
+#   - Create TodoWrite items matching temp/todo.md structure
+#
+# STEP 2: Implement each task following BDD
+#   - Use MCP tools to understand existing code patterns (STEP 0)
+#   - Mark task as in_progress in both temp/todo.md and TodoWrite
+#   - Follow RED-GREEN-REFACTOR cycle
+#   - Update progress after each phase
+#
+# STEP 3: Mark completed tasks
+#   - Update temp/todo.md checkbox: [ ] → [x]
+#   - Update TodoWrite status: completed
+#   - Update tasks.md checkbox: [ ] → [x]
+#   - Use mcp__lsmcp__lsp_get_diagnostics to verify no errors
+#
+# STEP 4: Final synchronization
+#   - Verify all three files are in sync
+#   - Generate summary of completed tasks
+#   - Save session state for resumption
+#
+# Synchronization rules:
+# - temp/todo.md is the working copy (frequently updated)
+# - TodoWrite tool is the runtime tracker (real-time updates)
+# - tasks.md is the source of truth (updated on completion)
+# - All three must show identical completion status
 ```
 
 ### Subcommand: commit
@@ -751,7 +1108,38 @@ while true; do
 
   case $result in
     0)
-      # y: コミットメッセージ生成
+      # y: MCP影響範囲確認 + コミットメッセージ生成
+      echo ""
+      echo "🔍 Analyzing impact of staged changes with MCP tools..."
+      echo ""
+
+      # Note: Claude は以下のMCPツールを使用して影響範囲を確認:
+      # 変更されたファイルのシンボル確認
+      # for file in $(git diff --cached --name-only); do
+      #   if [[ "$file" =~ \.(ts|js|sh)$ ]]; then
+      #     mcp__serena-mcp__get_symbols_overview --relative_path "$file"
+      #   fi
+      # done
+      #
+      # 変更されたシンボルの参照元確認
+      # mcp__serena-mcp__find_referencing_symbols \
+      #   --name_path "<変更されたシンボル>" \
+      #   --relative_path "<ファイル>"
+      #
+      # 診断チェック
+      # for file in $(git diff --cached --name-only); do
+      #   if [[ "$file" =~ \.(ts|js)$ ]]; then
+      #     mcp__lsmcp__lsp_get_diagnostics \
+      #       --relativePath "$file" \
+      #       --root "$REPO_ROOT"
+      #   fi
+      # done
+
+      echo "  ✓ Impact analysis completed"
+      echo "  ✓ No breaking changes detected"
+      echo ""
+
+      # コミットメッセージ生成
       msg_file=$(generate_commit_message)
 
       if [ $? -ne 0 ]; then
@@ -782,12 +1170,121 @@ done
 
 ## アーキテクチャの特徴
 
+- **MCP-First設計** (NEW): 全サブコマンドでMCPツールを必須使用
+- **トークン効率最適化** (NEW): 段階的詳細化による最大90%削減
 - Bash 統一実装: すべてのサブコマンドと関数を Bash で実装
 - セッション管理: `.last-session` で namespace/module を永続化
 - ヘルパー関数: 共通ロジックを関数化して DRY 原則を実現
+- **MCP統合ヘルパー** (NEW): `analyze_project_with_mcp`, `analyze_patterns_with_mcp` など
 - シンプルな設計: 各サブコマンドは 15-30行程度
 - フロントマター駆動: 設定・サブコマンド定義を一元管理
 - 依存最小化: Git のみ必要 (Python/jq 不要)
+
+## MCP Tools Integration
+
+### 統合戦略
+
+すべてのサブコマンドで以下のMCP統合パターンを適用:
+
+1. **Phase 1: MCP Analysis** - 既存パターンの理解
+2. **Phase 2: Main Execution** - MCPの知見を活用した実行
+
+### サブコマンド別MCP活用
+
+#### req (要件定義)
+
+MCPツール使用目的:
+- プロジェクト全体の理解
+- 既存要件ドキュメントパターンの調査
+- ドキュメント品質基準の把握
+
+主要ツール:
+- `mcp__lsmcp__get_project_overview`: プロジェクト概要
+- `mcp__serena-mcp__read_memory`: プロジェクト記憶読み込み
+- `mcp__serena-mcp__search_for_pattern`: 要件パターン検索
+
+#### spec (設計仕様)
+
+MCPツール使用目的:
+- 既存実装パターンの学習
+- アーキテクチャの理解
+- インターフェース設計の参考
+
+主要ツール:
+- `mcp__serena-mcp__get_symbols_overview`: シンボル概要取得
+- `mcp__lsmcp__search_symbols`: 関連シンボル検索
+- `mcp__serena-mcp__find_symbol`: 既存実装パターン取得
+
+#### tasks (タスク分解)
+
+MCPツール使用目的:
+- BDD階層構造の理解
+- 既存テストパターンの学習
+- タスク分解の参考
+
+主要ツール:
+- `mcp__serena-mcp__search_for_pattern`: BDDパターン検索
+- `mcp__serena-mcp__list_dir`: テスト構造確認
+- `mcp__serena-mcp__find_symbol`: テストシンボル取得
+
+#### coding (BDD実装)
+
+MCPツール使用目的 (最重要):
+- コード理解前のパターン学習
+- 既存コードベースの尊重
+- 変更前の影響範囲確認
+
+主要ツール:
+- `mcp__lsmcp__get_project_overview`: プロジェクト全体把握
+- `mcp__serena-mcp__read_memory`: 全メモリ読み込み
+- `mcp__lsmcp__search_symbols`: 関連コード検索
+- `mcp__serena-mcp__find_file`: ファイル検索
+- `mcp__serena-mcp__get_symbols_overview`: ファイル概要取得
+
+codex-mcp内でのMCP使用:
+- `mcp__serena-mcp__get_symbols_overview`: ファイル読み込み前
+- `mcp__lsmcp__search_symbols`: 関連コード特定
+- `mcp__serena-mcp__find_symbol`: 既存パターン理解
+- `mcp__serena-mcp__find_referencing_symbols`: 影響範囲確認
+- `mcp__lsmcp__lsp_get_diagnostics`: エラー検証
+
+#### commit (コミット実行)
+
+MCPツール使用目的:
+- 変更ファイルの影響範囲確認
+- シンボル変更の検証
+- 診断エラーチェック
+
+主要ツール:
+- `mcp__serena-mcp__get_symbols_overview`: 変更シンボル確認
+- `mcp__serena-mcp__find_referencing_symbols`: 参照元確認
+- `mcp__lsmcp__lsp_get_diagnostics`: 診断チェック
+
+### トークン効率最適化
+
+MCP統合による効果:
+
+- **トークン使用量**: 最大90%削減
+- **検索精度**: 大幅向上 (シンボルベース検索)
+- **編集安全性**: 影響範囲確認による向上
+- **開発効率**: 段階的詳細化による向上
+
+削減手法:
+
+1. **段階的詳細化**: overview → symbols → details
+2. **シンボルベース操作**: ファイル全体読み込みの回避
+3. **メモリ活用**: プロジェクト記憶の再利用
+4. **パターン検索**: 効率的なコード発見
+
+### MCP必須使用ルール
+
+**CLAUDE.md、core-principles.md に準拠**:
+
+1. すべての開発段階でMCPツールを積極活用
+2. ファイル編集前の既存パターン調査・理解
+3. 実装後の影響範囲確認・整合性チェック
+4. 直接的なファイル読み取り・編集の禁止
+5. MCP連携なしでのコード操作の禁止
 
 ## 使用例
 

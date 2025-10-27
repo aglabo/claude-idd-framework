@@ -2,7 +2,7 @@
 header:
   - src: 04-code-navigation.md
   - @(#): Code Navigation and Project Understanding
-title: agla-logger
+title: claude-idd-framework
 description: AIコーディングエージェント向けプロジェクトナビゲーション・コード検索戦略
 version: 1.0.0
 created: 2025-09-27

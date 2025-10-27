@@ -1,22 +1,37 @@
 {
-  "name": "claude-idd-freamwork",
-  "_comment": "@(#) : monorepo for @aglabo/ag-logger",
+  "name": "claude-idd-framework",
+  "_comment": "@(#) : IDD/SDD framework for claude code",
   "version": "0.0.1",
   "description": "lightweight & pluggable logger for TypeScript",
   "author": "atsushifx <https://github.com/atsushifx>",
   "license": "MIT",
   "type": "module",
   "keywords": [],
-  "packageManager": "pnpm@10.18.0",
+  "packageManager": "pnpm@10.19.0",
   "engines": {
     "node": ">=20",
     "pnpm:": ">=10"
   },
   "scripts": {
-    "prepare": "lefthook install"
+    "prepare": "lefthook install",
+    "lint:shell": "bash -c 'shellcheck -x scripts/*.sh'",
+    "test:scripts": "bash scripts/run-shellspec.sh ",
+    "test:scripts:watch": "bash -c 'shellspec --watch'",
+    "test:scripts:all": "concurrently \"pnpm run test:scripts:unit\" \"pnpm run test:scripts:functional\" \"pnpm run test:scripts:integration\" \"pnpm run test:scripts:e2e\"",
+    "test:scripts:unit": "bash scripts/run-shellspec.sh unit",
+    "test:scripts:functional": "bash scripts/run-shellspec.sh functional",
+    "test:scripts:integration": "bash scripts/run-shellspec.sh integration",
+    "test:scripts:e2e": "bash scripts/run-shellspec.sh e2e ",
+    "lint:claude": "bash -c 'shellcheck -x .claude/commands/**/*.sh'",
+    "test:claude": "bash .claude/commands/__tests__/run-tests.sh",
+    "test:claude:all": "concurrently \"pnpm run test:claude:unit\" \"pnpm run test:claude:functional\" \"pnpm run test:claude:integration\" \"pnpm run test:claude:e2e\"",
+    "test:claude:unit": "bash .claude/commands/__tests__/run-tests.sh unit",
+    "test:claude:functional": "bash .claude/commands/__tests__/run-tests.sh functional",
+    "test:claude:integration": "bash .claude/commands/__tests__/run-tests.sh integration",
+    "test:claude:e2e": "bash .claude/commands/__tests__/run-tests.sh e2e"
   },
   "devDependencies": {
     "@commitlint/config-conventional": "^19.8.1",
-    "@commitlint/types": "^19.8.1"
+    "concurrently": "^9.2.1"
   }
 }

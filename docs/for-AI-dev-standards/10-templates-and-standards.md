@@ -2,7 +2,7 @@
 header:
   - src: 10-templates-and-standards.md
   - @(#): Templates and Coding Standards
-title: agla-logger
+title: claude-idd-framework
 description: AIコーディングエージェント向けソースコードテンプレート・JSDocルール集
 version: 1.0.0
 created: 2025-09-27

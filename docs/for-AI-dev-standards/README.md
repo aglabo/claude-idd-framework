@@ -2,7 +2,7 @@
 header:
   - src: README.md
   - @(#): AI Development Standards
-title: agla-logger
+title: claude-idd-framework
 description: AI コーディングエージェント専用開発標準・実装ルール集
 version: 1.0.0
 created: 2025-09-27

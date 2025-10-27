@@ -2,7 +2,7 @@
 header:
   - src: 05-bdd-workflow.md
   - @(#): BDD Development Workflow
-title: agla-logger
+title: claude-idd-framework
 description: AIコーディングエージェント向けBDD開発フロー・Red-Green-Refactorサイクル
 version: 1.0.0
 created: 2025-09-27

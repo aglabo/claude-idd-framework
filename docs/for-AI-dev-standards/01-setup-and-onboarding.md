@@ -3,7 +3,7 @@ header:
   - src: 01-setup-and-onboarding.md
   - @(#): AI Development Environment Setup
 title: claude-idd-framework
-description: AI コーディングエージェント向け開発環境セットアップ・オンボーディング
+description: AIコーディングエージェント向け開発環境セットアップ・オンボーディング
 version: 1.0.0
 created: 2025-09-27
 authors:
