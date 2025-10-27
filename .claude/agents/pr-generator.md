@@ -13,7 +13,7 @@ parameters:
 
 # ユーザー管理ヘッダー
 title: pr-generator
-version: 2.0.0
+version: 0.5.0
 created: 2025-09-30
 authors:
   - atsushifx

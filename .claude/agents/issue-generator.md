@@ -8,12 +8,12 @@ color: green
 
 # ユーザー管理ヘッダー
 title: issue-generator
-version: 4.0.0
+version: 0.5.0
 created: 2025-09-30
 authors:
   - atsushifx
 changes:
-  - 2025-10-19: v4.0.0 - 入力に issue_type を追加、AI判定ロジックを削除、出力を Markdown のみに変更
+  - 2025-10-19: 入力に issue_type を追加、AI判定ロジックを削除、出力を Markdown のみに変更
   - 2025-10-15: AI判定メソッド方式に再構成、Codexによる文脈理解判定を採用
   - 2025-10-15: JSON入出力形式に全面書き直し、commit種別優先・issue種別補助ロジック採用
   - 2025-10-02: エージェント名を issue-generator に統一

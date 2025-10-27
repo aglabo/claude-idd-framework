@@ -8,7 +8,7 @@ color: blue
 
 # ユーザー管理ヘッダー
 title: bdd-coder
-version: 3.0.0
+version: 0.5.0
 created: 2025-01-28
 authors:
   - atsushifx

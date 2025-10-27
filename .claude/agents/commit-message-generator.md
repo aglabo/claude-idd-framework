@@ -7,7 +7,7 @@ model: inherit
 
 # ユーザー管理ヘッダー
 title: agla-logger
-version: 1.1.0
+version: 0.5.0
 created: 2025-01-28
 authors:
   - atsushifx
