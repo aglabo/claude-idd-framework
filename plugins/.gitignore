@@ -10,5 +10,5 @@
 *.bak.*
 
 ##	claude's
-!.claude/*
+!**/.claude/*
 
