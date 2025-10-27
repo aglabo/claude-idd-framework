@@ -15,7 +15,7 @@ config:
 
 # ag-logger プロジェクト要素
 title: /idd:issue:load
-version: 1.0.0
+version: 0.5.0
 created: 2025-10-20
 authors:
   - atsushifx

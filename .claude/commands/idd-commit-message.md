@@ -20,7 +20,7 @@ subcommands:
 
 # ag-logger プロジェクト要素
 title: idd-commit-message
-version: 3.0.0
+version: 0.5.0
 created: 2025-09-30
 authors:
   - atsushifx

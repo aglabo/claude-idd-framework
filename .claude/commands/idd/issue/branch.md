@@ -19,18 +19,18 @@ config:
 
 # ag-logger プロジェクト要素
 title: /idd:issue:branch
-version: 1.6.0
+version: 0.5.0
 created: 2025-10-23
 authors:
   - atsushifx
 changes:
-  - 2025-10-27: v1.6.0 - T19実装完了 (使い方セクション・使用例セクション追加)
-  - 2025-10-27: v1.5.0 - T18実装完了 (フロントマター完成: allowed-toolsの具体化)
-  - 2025-10-26: v1.4.0 - ブランチ既存エラー処理実装 (T10-3: Branch already exists validation)
-  - 2025-10-23: v1.3.0 - newサブコマンド統合完了 (T7: 完全な処理フロー, 9テスト全合格)
-  - 2025-10-23: v1.2.0 - ドメイン検出機能実装 (T3: detect_domain)
-  - 2025-10-23: v1.1.0 - サブコマンドルーティング実装 (T2)
-  - 2025-10-23: v1.0.0 - 初版作成 (T1: 基本構造とセッション管理)
+  - 2025-10-27: T19実装完了 (使い方セクション・使用例セクション追加)
+  - 2025-10-27: T18実装完了 (フロントマター完成: allowed-toolsの具体化)
+  - 2025-10-26: ブランチ既存エラー処理実装 (T10-3: Branch already exists validation)
+  - 2025-10-23: newサブコマンド統合完了 (T7: 完全な処理フロー, 9テスト全合格)
+  - 2025-10-23: ドメイン検出機能実装 (T3: detect_domain)
+  - 2025-10-23: サブコマンドルーティング実装 (T2)
+  - 2025-10-23: 初版作成 (T1: 基本構造とセッション管理)
 copyright:
   - Copyright (c) 2025 atsushifx <https://github.com/atsushifx>
   - This software is released under the MIT License.
@@ -245,7 +245,7 @@ Issue選択後、ブランチ提案から作成まで:
 # 🌿 Suggested branch: feat-27/feature/add-new-feature
 # 📁 Domain: feature (detected from issue type)
 # 🔀 Base branch: main
-# 
+#
 # 💡 Next steps:
 #   - Review the suggestion
 #   - Run '/idd:issue:branch commit' to create the branch
@@ -328,11 +328,11 @@ Issue選択後、ブランチ提案から作成まで:
 
 # 出力:
 # ❌ Uncommitted changes detected. Please commit or stash them first.
-# 
+#
 # Modified files:
 #   M  src/components/Button.tsx
 #   M  src/styles/main.css
-# 
+#
 # 💡 Options:
 #    - git status              # View changes
 #    - git add . && git commit # Commit changes
@@ -781,7 +781,7 @@ validate_git_state() {
 ##
 check_branch_exists() {
   local branch_name="$1"
-  
+
   # Use git rev-parse to check branch existence
   # --verify: Check if reference exists
   # --quiet: Suppress output

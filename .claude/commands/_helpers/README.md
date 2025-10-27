@@ -4,7 +4,7 @@ header:
   - "@(#)": IDD Helper Library Documentation Index
 title: IDD Helper Libraries
 description: Quick reference for IDD command helper functions
-version: 1.1.0
+version: 0.5.0
 created: 2025-10-15
 authors:
   - atsushifx

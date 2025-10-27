@@ -14,15 +14,15 @@ config:
 
 # プロジェクト要素
 title: get-summary
-version: 4.2.0
+version: 0.5.0
 created: 2025-10-18
 authors:
   - atsushifx
 changes:
   - 2025-10-18: 初版作成 - summary 生成機能実装
-  - 2025-10-18: v4.0.0 - _edit-summary 統合による対話的編集機能を追加
-  - 2025-10-18: v4.1.0 - トップダウン構造に再構成、関数ライブラリを最後にまとめる
-  - 2025-10-18: v4.2.0 - process_edit_result() 関数を追加し、編集結果処理を関数化
+  - 2025-10-18: _edit-summary 統合による対話的編集機能を追加
+  - 2025-10-18: トップダウン構造に再構成、関数ライブラリを最後にまとめる
+  - 2025-10-18: process_edit_result() 関数を追加し、編集結果処理を関数化
 copyright:
   - Copyright (c) 2025 atsushifx <https://github.com/atsushifx>
   - This software is released under the MIT License.

@@ -14,26 +14,23 @@ config:
 
 # ag-logger プロジェクト要素
 title: /idd:issue:push
-version: 1.6.1
+version: 0.5.0
 created: 2025-10-21
 authors:
   - atsushifx
 changes:
-  - 2025-10-21: v1.0.0 - 初版作成 (/idd-issue pushから分離)
-  - 2025-10-21: T1実装完了 (Environment and Session Management)
-  - 2025-10-21: T2実装完了 (Issue File Identification and Validation)
-  - 2025-10-22: T3実装完了 (GitHub CLI Integration - New Issue Creation)
-  - 2025-10-22: v1.1.0 - bashスクリプトをリファクタリング (関数化)
-  - 2025-10-22: v1.1.1 - _load_issue_session()をライブラリに移設
-  - 2025-10-22: v1.1.2 - _validate_issue_file(), _extract_issue_content()をライブラリに移設
-  - 2025-10-22: v1.1.3 - 関数のエラーハンドリング改善 (exit → return)
-  - 2025-10-22: v1.2.0 - ドキュメント構造を改善（スクリプトライブラリセクション追加）
-  - 2025-10-22: v1.2.1 - check_prerequisites()のエラーハンドリング改善
-  - 2025-10-22: v1.3.0 - T4実装完了 (既存Issue更新機能) - push_existing_issue()実装
-  - 2025-10-22: v1.4.0 - ドキュメント構成再編成 (初期設定→前提条件→使い方→メインルーチンの順に変更)
-  - 2025-10-22: v1.5.0 - T5実装完了 (ファイルリネームとセッション更新) - rename_new_issue_file(), update_session_after_push()実装
-  - 2025-10-22: v1.6.0 - セッション管理改善 (変数命名規則の統一、_save_issue_session実装、title→TITLE)
-  - 2025-10-22: v1.6.1 - 関数命名規則の統一 (save_issue_session→_save_issue_session、関数配置の最適化)
+  - 2025-10-21: 初版作成 (/idd-issue pushから分離)
+  - 2025-10-22: bashスクリプトをリファクタリング (関数化)
+  - 2025-10-22: _load_issue_session()をライブラリに移設
+  - 2025-10-22: _validate_issue_file(), _extract_issue_content()をライブラリに移設
+  - 2025-10-22: 関数のエラーハンドリング改善 (exit → return)
+  - 2025-10-22: ドキュメント構造を改善（スクリプトライブラリセクション追加）
+  - 2025-10-22: check_prerequisites()のエラーハンドリング改善
+  - 2025-10-22: T4実装完了 (既存Issue更新機能) - push_existing_issue()実装
+  - 2025-10-22: ドキュメント構成再編成 (初期設定→前提条件→使い方→メインルーチンの順に変更)
+  - 2025-10-22: T5実装完了 (ファイルリネームとセッション更新) - rename_new_issue_file(), update_session_after_push()実装
+  - 2025-10-22: セッション管理改善 (変数命名規則の統一、_save_issue_session実装、title→TITLE)
+  - 2025-10-22: 関数命名規則の統一 (save_issue_session→_save_issue_session、関数配置の最適化)
 copyright:
   - Copyright (c) 2025 atsushifx <https://github.com/atsushifx>
   - This software is released under the MIT License.

@@ -13,16 +13,14 @@ config:
 
 # プロジェクト要素
 title: edit-summary
-version: 2.3.0
+version: 0.5.0
 created: 2025-10-18
 authors:
   - atsushifx
 changes:
-  - 2025-10-18: 初版作成 - ユーザー指示による summary 修正機能実装
-  - 2025-10-18: v2.0.0 - y/n/q 対話的編集ループに変更、cancel 出力対応
-  - 2025-10-18: v2.1.0 - トップダウン構造に再構成、対話処理を関数化
-  - 2025-10-18: v2.2.0 - 概念的実装を bash スクリプトに置き換え、関数を完全実装
-  - 2025-10-18: v2.3.0 - show_summary() と get_choice() に分離、yes/no/quit 入力対応
+  - 2025-10-18: show_summary() と get_choice() に分離、yes/no/quit 入力対応
+  - 2025-10-18: ユーザー指示による summary 修正機能実装
+
 copyright:
   - Copyright (c) 2025 atsushifx <https://github.com/atsushifx>
   - This software is released under the MIT License.

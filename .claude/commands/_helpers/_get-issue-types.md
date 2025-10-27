@@ -16,14 +16,14 @@ config:
 
 # プロジェクト要素
 title: _get-issue-types
-version: 1.2.0
+version: 0.5.0
 created: 2025-10-19
 authors:
   - atsushifx
 changes:
-  - 2025-10-20: v1.2.0 - すべてAI判定に変更、柔軟性を優先（高速パス削除）
-  - 2025-10-20: v1.1.0 - summary をオプション化、タイトルプレフィックスから高速判定機能を追加
-  - 2025-10-19: v1.0.0 - 初版作成、issue-generator.md のロジックを抽出
+  - 2025-10-20: すべてAI判定に変更、柔軟性を優先（高速パス削除）
+  - 2025-10-20: summary をオプション化、タイトルプレフィックスから高速判定機能を追加
+  - 2025-10-19: 初版作成、issue-generator.md のロジックを抽出
 copyright:
   - Copyright (c) 2025 atsushifx <https://github.com/atsushifx>
   - This software is released under the MIT License.

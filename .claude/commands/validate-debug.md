@@ -7,7 +7,7 @@ description: 6 段階包括的品質検証・デバッグワークフローコ�
 
 # ユーザー管理ヘッダー
 title: validate-debug
-version: 1.0.0
+version: 0.5.0
 created: 2025-09-28
 authors:
   - atsushifx

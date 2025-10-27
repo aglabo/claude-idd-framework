@@ -6,7 +6,7 @@ description: serena-mcp を活用した構造化アプリ開発・問題解決�
 
 # ユーザー管理ヘッダー
 title: serena
-version: 1.0.0
+version: 0.5.0
 created: 2025-09-28
 authors:
   - atsushifx

@@ -19,7 +19,7 @@ config:
 
 # ag-logger プロジェクト要素
 title: idd-issue-list
-version: 1.0.0
+version: 0.5.0
 created: 2025-10-16
 authors:
   - atsushifx

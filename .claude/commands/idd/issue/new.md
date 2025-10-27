@@ -17,16 +17,16 @@ config:
 
 # ag-logger プロジェクト要素
 title: /idd:issue:new
-version: 2.2.0
+version: 0.5.0
 created: 2025-10-16
 authors:
   - atsushifx
 changes:
-  - 2025-10-19: v2.2.0 - セッション管理機能を追加 (idd-session.lib.sh 使用)
-  - 2025-10-19: v2.1.0 - issue-generator エージェントによる下書き生成機能を追加
-  - 2025-10-19: v2.0.1 - /_helpers/_get-issue-types 統合で種別判定機能を追加
-  - 2025-10-18: v2.0.0 - AskUserQuestion ツールを使った対話的実装に変更
-  - 2025-10-16: v1.0.0 - 初版作成
+  - 2025-10-19: セッション管理機能を追加 (idd-session.lib.sh 使用)
+  - 2025-10-19: issue-generator エージェントによる下書き生成機能を追加
+  - 2025-10-19: /_helpers/_get-issue-types 統合で種別判定機能を追加
+  - 2025-10-18: AskUserQuestion ツールを使った対話的実装に変更
+  - 2025-10-16: 初版作成
 copyright:
   - Copyright (c) 2025 atsushifx <https://github.com/atsushifx>
   - This software is released under the MIT License.

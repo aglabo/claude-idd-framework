@@ -22,7 +22,7 @@ subcommands:
   commit: "対話的ファイル選択とコミット実行"
 # ユーザー管理ヘッダー
 title: sdd
-version: 2.1.0
+version: 0.5.0
 created: 2025-09-28
 authors:
   - atsushifx
