@@ -25,7 +25,6 @@ set -euo pipefail
 PLUGIN_DIR="plugins/claude-idd-framework"
 XCP="./scripts/xcp.sh"
 
-<<<<<<< HEAD
 mkdir -p "$PLUGIN_DIR/.claude"
 
 # Ensure plugin dir exists
@@ -73,55 +72,6 @@ fi
 
 # 4. Copy docs/for-AI-dev-standards
 mkdir -p "${PLUGIN_DIR}/docs/"
-||||||| parent of b76c9d7 (build(scripts): プラグイン同期用スクリプト追加)
-=======
-mkdir -p "$PLUGIN_DIR"
-
-# Ensure plugin dir exists
-if [[ ! -d "$PLUGIN_DIR" ]]; then
-  echo "❌ Error: Plugin directory '$PLUGIN_DIR' not found."
-  echo "➡️  Please create it first (e.g., mkdir $PLUGIN_DIR)"
-  exit 1
-fi
-
-echo "🚀 Starting plugin build & sync process..."
-echo "-----------------------------------------"
-
-# -----------------------------------------------------------------------------
-# Function: copy_with_xcp
-# -----------------------------------------------------------------------------
-copy_with_xcp() {
-  local src="$1"
-  local dest="$2"
-  local desc="${3:-$src}"
-
-  if [[ ! -e "$src" ]]; then
-    echo "⚠️  Skip missing: $desc"
-    return
-  fi
-
-  echo "📦 Syncing: $desc → $dest"
-  "$XCP" -R -u -b -H -p "$src" "$dest"
-}
-
-# -----------------------------------------------------------------------------
-# Copy operations
-# -----------------------------------------------------------------------------
-
-# 1. Copy .claude/agents
-copy_with_xcp ".claude/agents" "${PLUGIN_DIR}/.claude/"
-
-# 2. Copy .claude/commands (includes _helpers and _libs automatically)
-copy_with_xcp ".claude/commands" "${PLUGIN_DIR}/.claude/"
-
-# 3. Copy .claude/.mcp.json
-if [[ -f ".claude/.mcp.json" ]]; then
-  echo "📄 Copying .mcp.json → ${PLUGIN_DIR}/.claude/"
-  "$XCP" -u -b -H -p ".claude/.mcp.json" "${PLUGIN_DIR}/.claude/"
-fi
-
-# 4. Copy docs/for-AI-dev-standards
->>>>>>> b76c9d7 (build(scripts): プラグイン同期用スクリプト追加)
 copy_with_xcp "docs/for-AI-dev-standards" "${PLUGIN_DIR}/docs/"
 
 # 5. Copy docs/writing-rules
