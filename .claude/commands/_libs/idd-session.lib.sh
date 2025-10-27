@@ -13,6 +13,12 @@
 # This software is released under the MIT License.
 # https://opensource.org/licenses/MIT
 
+# Source guard - prevent multiple inclusion
+if [[ -n "${_IDD_SESSION_LIB_LOADED:-}" ]]; then
+  return 0
+fi
+readonly _IDD_SESSION_LIB_LOADED=1
+
 # 依存: io-utils.lib.sh (error_print)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=./_libs/io-utils.lib.sh
@@ -40,16 +46,17 @@ _save_issue_session() {
   local new_command="$4"
 
   # Build session data as associative array
+  # shellcheck disable=SC2034  # session_data used by _save_session via nameref
   declare -A session_data=(
     [SESSION_VERSION]="$SESSION_VERSION"
     [SESSION_FORMAT]="$SESSION_FORMAT"
     [LAST_ISSUE_FILE]="$new_filename"
     [LAST_ISSUE_NUMBER]="$new_issue_number"
     [LAST_COMMAND]="$new_command"
-    [TITLE]="${TITLE:-}"
-    [ISSUE_TYPE]="${ISSUE_TYPE:-}"
-    [COMMIT_TYPE]="${COMMIT_TYPE:-}"
-    [BRANCH_TYPE]="${BRANCH_TYPE:-}"
+    [LAST_ISSUE_TITLE]="${TITLE:-}"
+    [LAST_ISSUE_TYPE]="${ISSUE_TYPE:-}"
+    [LAST_COMMIT_TYPE]="${COMMIT_TYPE:-}"
+    [LAST_BRANCH_TYPE]="${BRANCH_TYPE:-}"
   )
 
   # Use _save_session library function
@@ -91,7 +98,9 @@ _load_issue_session() {
   # LAST_* 変数を標準変数名に変換
   # 可変データ（小文字）
   filename="${LAST_ISSUE_FILE:-}"
+  # shellcheck disable=SC2034  # Used by external callers
   issue_number="${LAST_ISSUE_NUMBER:-}"
+  # shellcheck disable=SC2034  # Used by external callers
   command="${LAST_COMMAND:-}"
 
   # 不変データ（大文字）
@@ -140,6 +149,7 @@ _validate_issue_file() {
 #
 # @param $1 セッションファイルパス
 # @param $2 連想配列変数名(nameref)
+# @param $3 (optional) LAST_MODIFIED固定値(テスト用、省略時は現在時刻)
 # @return 0=成功, 1=失敗(ファイルパスが指定されていない場合など)
 # @example
 #   declare -A session_data=(
@@ -148,23 +158,36 @@ _validate_issue_file() {
 #     [LAST_COMMAND]="$command"
 #   )
 #   _save_session "$SESSION_FILE" session_data
+#   _save_session "$SESSION_FILE" session_data "2025-10-26T10:00:00+09:00"  # For tests
 _save_session() {
   local session_file="$1"
   local -n data="$2"
+  local custom_timestamp="${3:-}"
 
   if [ -z "$session_file" ]; then
     error_print "❌ Error: Session file path required"
     return 1
   fi
 
+  # Ensure parent directory exists
+  mkdir -p "$(dirname "$session_file")"
+
   {
     echo "# Last session"
 
     for key in "${!data[@]}"; do
+      # Skip readonly variables (SESSION_VERSION, SESSION_FORMAT)
+      if [[ "$key" == "SESSION_VERSION" || "$key" == "SESSION_FORMAT" ]]; then
+        continue
+      fi
       echo "$key=\"${data[$key]}\""
     done
 
-    echo "LAST_MODIFIED=\"$(date -Iseconds 2>/dev/null || date +%Y-%m-%dT%H:%M:%S)\""
+    if [[ -n "$custom_timestamp" ]]; then
+      echo "LAST_MODIFIED=\"$custom_timestamp\""
+    else
+      echo "LAST_MODIFIED=\"$(date -Iseconds 2>/dev/null || date +%Y-%m-%dT%H:%M:%S)\""
+    fi
   } > "$session_file"
 }
 
