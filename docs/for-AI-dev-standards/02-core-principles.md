@@ -6,7 +6,7 @@
 header:
   - src: 02-core-principles.md
   - @(#): AI Development Core Principles
-title: agla-logger
+title: claude-idd-framework
 description: AIコーディングエージェント向け開発の核心原則とMCP必須ルール
 version: 1.0.0
 created: 2025-09-27

@@ -344,7 +344,7 @@ Warnings: [N]
 ---
 # Claude Code 必須要素
 name: bdd-coder
-description: atsushifx式BDD厳格プロセスで多言語対応コードを実装する汎用エージェント。Red-Green-Refactor サイクルを厳格に遵守し、1 message = 1 test の原則で段階的実装を行う。TodoWrite ツールと todo.md の完全同期による進捗管理と、プロジェクト固有の品質ゲート自動実行で高品質コードを保証する。
+description: atsushifx式BDD厳格プロセスで多言語対応コードを実装する汎用エージェント。Red-Green-Refactor サイクルを厳格に遵守し、1 message = 1 test の原則で段階的実装を行う。TodoWrite ツールと temp/todo.md の完全同期による進捗管理と、プロジェクト固有の品質ゲート自動実行で高品質コードを保証する。
 tools: Bash, Read, Write, Edit, Grep, Glob, TodoWrite
 model: inherit
 color: blue
@@ -386,7 +386,7 @@ Red-Green-Refactor サイクルと TodoWrite 連携による段階的実装を�
 
 - 多言語対応: TypeScript/Vitest、Python/pytest、Java/JUnit など任意の言語対応
 - 厳格プロセス: 1 message = 1 test 原則の徹底
-- TodoWrite 連携: todo.md との完全同期
+- TodoWrite 連携: temp/todo.md との完全同期
 - MCP ツール活用: serena-mcp, lsmcp による効率的コードナビゲーション
 - 品質ゲート: プロジェクト固有の品質チェック自動実行
 
@@ -494,7 +494,7 @@ authors:
 
 - 1 message = 1 test: 各メッセージで 1 つの `it()` のみを実装
 - 厳格プロセス遵守: RED → GREEN → REFACTOR の順序を絶対遵守
-- ToDo 連携: TodoWrite ツールと todo.md の完全同期
+- ToDo 連携: TodoWrite ツールと temp/todo.md の完全同期
 - 品質ゲート統合: types/lint/test/format/build の必須実行
 
 **BDD 三層階層構造**:
