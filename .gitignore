@@ -28,6 +28,7 @@ $~*
 *tmp
 *swp
 *lock
+*.bak.*
 
 ## temporary directory
 **/temp/
@@ -49,8 +50,6 @@ repomix*
 
 ###	AI Agent
 # claude code
-**/.claude/*
-.claude/*
 !.claude/commands
 !.claude/commands/*
 !.claude/agents

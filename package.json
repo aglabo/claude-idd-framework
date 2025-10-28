@@ -1,7 +1,7 @@
 {
   "name": "claude-idd-framework",
   "_comment": "@(#) : IDD/SDD framework for claude code",
-  "version": "0.0.1",
+  "version": "0.5.0",
   "description": "lightweight & pluggable logger for TypeScript",
   "author": "atsushifx <https://github.com/atsushifx>",
   "license": "MIT",
@@ -14,6 +14,7 @@
   },
   "scripts": {
     "prepare": "lefthook install",
+    "plugin:build": "bash scripts/build-plugin.sh",
     "lint:shell": "bash -c 'shellcheck -x scripts/*.sh'",
     "test:scripts": "bash scripts/run-shellspec.sh ",
     "test:scripts:watch": "bash -c 'shellspec --watch'",
