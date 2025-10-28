@@ -25,16 +25,16 @@ set -euo pipefail
 PLUGIN_DIR="plugins/claude-idd-framework"
 XCP="./scripts/xcp.sh"
 
-mkdir -p "$PLUGIN_DIR/.claude"
+mkdir -p "$PLUGIN_DIR"
 
 # Ensure plugin dir exists
 if [[ ! -d "$PLUGIN_DIR" ]]; then
-  echo "❌ Error: Plugin directory '$PLUGIN_DIR' not found."
-  echo "➡️  Please create it first (e.g., mkdir $PLUGIN_DIR)"
+  echo "Error: Plugin directory '$PLUGIN_DIR' not found."
+  echo "Please create it first (e.g., mkdir $PLUGIN_DIR)"
   exit 1
 fi
 
-echo "🚀 Starting plugin build & sync process..."
+echo "Starting plugin build & sync process..."
 echo "-----------------------------------------"
 
 # -----------------------------------------------------------------------------
@@ -46,7 +46,7 @@ copy_with_xcp() {
   local desc="${3:-$src}"
 
   if [[ ! -e "$src" ]]; then
-    echo "⚠️  Skip missing: $desc"
+    echo "Skip missing: $desc"
     return
   fi
 
@@ -59,15 +59,15 @@ copy_with_xcp() {
 # -----------------------------------------------------------------------------
 
 # 1. Copy .claude/agents
-copy_with_xcp ".claude/agents" "${PLUGIN_DIR}/.claude/agents"
+copy_with_xcp ".claude/agents" "${PLUGIN_DIR}/agents"
 
 # 2. Copy .claude/commands (includes _helpers and _libs automatically)
-copy_with_xcp ".claude/commands" "${PLUGIN_DIR}/.claude/"
+copy_with_xcp ".claude/commands" "${PLUGIN_DIR}/commands"
 
 # 3. Copy .claude/.mcp.json
 if [[ -f ".mcp.json" ]]; then
-  echo "📄 Copying .mcp.json → ${PLUGIN_DIR}/.claude/"
-  "$XCP" -u -b -H -p ".mcp.json" "${PLUGIN_DIR}/.claude/"
+  echo "Copying .mcp.json → ${PLUGIN_DIR}"
+  "$XCP" -u -b -H -p ".mcp.json" "${PLUGIN_DIR}"
 fi
 
 # 4. Copy docs/for-AI-dev-standards
@@ -78,9 +78,9 @@ copy_with_xcp "docs/for-AI-dev-standards" "${PLUGIN_DIR}/docs/"
 copy_with_xcp "docs/writing-rules" "${PLUGIN_DIR}/docs/"
 
 echo "-----------------------------------------"
-echo "✅ Plugin build & sync completed successfully."
-echo "📁 Synced into: ${PLUGIN_DIR}/"
+echo "Plugin build & sync completed successfully."
+echo "Synced into: ${PLUGIN_DIR}/"
 echo ""
-echo "💡 Tip: Now you can run:"
-echo "   /plugin marketplace add ./claude-idd-framework"
-echo "   /plugin install claude-idd-framework@atsushifx-marketplace"
+echo "Tip: Now you can run:"
+echo " /plugin marketplace add ./claude-idd-framework"
+echo " /plugin install claude-idd-framework@atsushifx-marketplace"
