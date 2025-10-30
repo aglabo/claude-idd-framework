@@ -60,8 +60,8 @@ LIBS_DIR="$REPO_ROOT/.claude/commands/_libs"
 . "$LIBS_DIR/idd-session.lib.sh"
 
 # Issue-specific environment setup
-_setup_repo_env
-ISSUES_DIR=$(_get_temp_dir "idd/issues")
+setup_repo_env
+ISSUES_DIR=$(get_temp_dir "idd/issues")
 SESSION_FILE="$ISSUES_DIR/.last.session"
 ```
 
@@ -88,7 +88,7 @@ display_selection_result "$selected"
 ### ヘルパーライブラリ
 
 - `io-utils.lib.sh`: エラー出力 (`error_print`)
-- `idd-env.lib.sh`: リポジトリ環境設定 (`_setup_repo_env`, `_get_temp_dir`)
+- `idd-env.lib.sh`: リポジトリ環境設定 (`setup_repo_env`, `get_temp_dir`)
 - `idd-session.lib.sh`: セッション管理 (`_load_session`)
 
 ### ヘルパーコマンド

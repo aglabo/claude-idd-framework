@@ -28,7 +28,7 @@ This directory contains concise documentation for bash helper functions used by 
 
 ### Environment Management
 - **[_idd-env.md](_idd-env.md)**: Repository root detection, temp directory management
-- Functions: `_setup_repo_env()`, `_get_temp_dir()`, `_ensure_dir()`
+- Functions: `setup_repo_env()`, `get_temp_dir()`, `_ensure_dir()`
 
 ### File Operations
 - **[_idd-file-ops.md](_idd-file-ops.md)**: File I/O, validation, editing
@@ -57,8 +57,8 @@ source "$SCRIPT_DIR/_libs/idd-env.lib.sh"
 source "$SCRIPT_DIR/_libs/idd-git-ops.lib.sh"
 
 # Use helper functions
-_setup_repo_env
-ISSUE_DIR=$(_get_temp_dir "idd/issues")
+setup_repo_env
+ISSUE_DIR=$(get_temp_dir "idd/issues")
 _ensure_dir "$ISSUE_DIR"
 
 NEW_URL=$(_gh_issue_create "$TITLE" "$BODY_FILE")
