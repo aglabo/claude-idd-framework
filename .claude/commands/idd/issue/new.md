@@ -53,8 +53,8 @@ LIBS_DIR="$REPO_ROOT/.claude/commands/_libs"
 . "$LIBS_DIR/idd-session.lib.sh"
 
 # Issue-specific environment setup
-_setup_repo_env
-ISSUES_DIR=$(_get_temp_dir "idd/issues")
+setup_repo_env
+ISSUES_DIR=$(get_temp_dir "idd/issues")
 SESSION_FILE="$ISSUES_DIR/.last.session"
 ```
 
