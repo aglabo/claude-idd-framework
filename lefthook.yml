@@ -14,7 +14,7 @@ pre-commit:
 
 prepare-commit-msg:
   commands:
-    prepare-by-codegpt:
+    prepare-message:
       run: bash -c 'scripts/prepare-commit-msg.sh --git-buffer'
 
 commit-msg:
