@@ -18,6 +18,9 @@ copyright:
 
 ## クイックスタート
 
+このセクションでは、`claude-idd-framework` を Claude Code に導入し、基本的なワークフローを実行するまでの手順を説明します。
+初めて使用するかたでも、以下のステップを順番に実行すれば約 5分でセットアップできます。
+
 ## 1. プラグインのインストール
 
 ### 1.1 インストール手順
@@ -95,26 +98,50 @@ Claude Code で以下のコマンドを実行してください。
 - Issue のサマリー (概要説明)
 - 自動判定された Issue タイプ (feature、bug、documentation など)
 
-生成された Issue ドラフトは `temp/idd/issues/` ディレクトリに保存されます。ファイル名は `new-YYYYMMDD-HHMMSS-[type]-[title].md` 形式で自動生成されます。
+生成された Issue ドラフトは `temp/idd/issues/` ディレクトリに保存されます。ファイル名は `new-YYYYMMDD-HHMMSS-[type]-[title].md` 形式です。
+以後、作成した Issue にしたがって、ソフトウェアを開発します。
 
-次のステップとして、`/claude-idd-framework:idd:issue:edit` コマンドで内容を編集したり、`/claude-idd-framework:idd:issue:push` コマンドで GitHub にプッシュしたりできます。
+## 基本的な開発ワークフロー
 
-## 3. 次のステップ
+ここまでで `claude-idd-framework` プラグインのインストールと、最初の Issue 作成コマンドの実行が完了しました。
+ここからは、`IDD` の基本的な開発フローに従って、ソフトウェアを開発します。
 
-### 3.1 詳細なセットアップ
+1. ブランチの作成:
+   生成された Issue に対応する開発用の Git ブランチを作成します。ブランチ名は Issue 番号やタイトルをもとに決定すると管理がしやすくなります。
 
-プラグインの詳細な設定や前提条件について知りたい場合は、[インストールガイド](02-installation.md)を参照してください。
+2. 実装とコミット:
+   Issue に対応するコードを実装します。実装したコードは Git リポジトリにコミットします。
 
-インストールガイドでは、必須ツールの確認、スキル要件、プラグインの詳細なインストール手順、初期セットアップ方法について説明しています。
+3. `Pull Request` の作成:
+   開発が終了したら、PR (`Pull Request`) を作成します。
 
-### 3.2 基本的なワークフロー
+4. レビューとマージ:
+   作成した PR についてレビューし、問題なければ GitHub の main ブランチ (または、Issue 作成元のブランチ)にマージします。
 
-Issue 作成、コミットメッセージ生成、Pull Request 作成などの基本的な操作を学びたい場合は、[基本的なワークフロー](03-basic-workflow.md)を参照してください。
+このように、Issue を起点として一貫した開発ワークフロー (Issue → 実装 → Commit → PR) サイクルを回してソフトウェアを開発していきます。
+このためのコマンドを一括して提供しているのが、`claude-idd-framework`です。
 
-基本的なワークフローガイドでは、Issue-Driven Development (IDD)、BDD 開発サイクル、テスト実行、トラブルシューティングについて詳しく説明しています。
+## See Also
 
-### 3.3 コマンドリファレンス
+より詳細な使い方や高度な設定については、以下のリソースを参照してください。
 
-利用可能な全コマンドの詳細なリファレンスについては、[CLAUDE.md](../../CLAUDE.md)を参照してください。
+- [基本的な開発ワークフロー](03-basic-workflow.md)
+  `calude-idd-framework`による基本的な開発ワークフローの説明。
 
-CLAUDE.md には、カスタムスラッシュコマンド、カスタムエージェント、MCP ツールの使用方法、開発のベストプラクティスなどが記載されています。
+- [Claude Code 公式ドキュメント - Overview](https://docs.anthropic.com/ja/docs/claude-code/overview)
+  Claude Code の全体像、基本操作、機能概要を理解するための公式ガイド。
+
+- [Claude Code Plugins ガイド](https://anthropic.mintlify.app/ja/docs/claude-code/plugins)
+  プラグインの追加・削除方法や、カスタムコマンド、エージェント機能などの解説。
+
+- [claude-idd-framework GitHub リポジトリ](https://github.com/aglabo/claude-idd-framework)
+  プラグインのソースコードや Issue テンプレート、カスタム設定の詳細を確認可能。
+
+- [GitHub Flow の基本](https://docs.github.com/ja/get-started/quickstart/github-flow)
+  Claude Code の IDD フローと密接に関係する GitHub のワークフローを理解するために役立つ。
+
+## License
+
+Copyright (c) 2025 atsushifx
+This software is released under the MIT License.
+[https://opensource.org/licenses/MIT](https://opensource.org/licenses/MIT)
