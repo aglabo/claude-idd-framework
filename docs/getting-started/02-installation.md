@@ -379,6 +379,51 @@ Claude Code の CLI で、以下のコマンドを実行します。
 > 注意:
 > すべてのコマンドは `/claude-idd-framework:` 接頭辞が必要です。
 
+### 3.3 コマンドの使用例
+
+ここでは、`claude-idd-framework` に含まれる代表的なコマンドの使用例を紹介します。
+これらのコマンドはすべて、**Claude Code の対話的な CLI 環境** で実行できます。
+各コマンドは GitHub CLI (`gh`) や MCP サーバーと連携し、Issue の作成からブランチ生成、コミット、PR 作成までの一連の開発フローを自動化します。
+
+#### 新しい Issue ドラフトを作成する
+
+```bash
+/claude-idd-framework:\idd\issue:new "ユーザー認証の追加"
+```
+
+Claude Code が対話形式で質問を開始し、入力内容に基づいて Issue ドラフトを生成します。
+生成されたドラフトは、以下のディレクトリに保存されます。
+
+```bash
+./temp/idd/issues/new-20251104-230715-feature-user-auth.md
+```
+
+#### Issue からブランチを作成する
+
+次のコマンドを実行し、ブランチ名を提案させます。
+
+```bash
+/claude-idd-framework:idd:issue:branch new
+```
+
+出力例:
+
+```bash
+  Branch Proposal
+
+  Issue: ユーザー認証の追加 (Issue #12)
+  Current branch: main
+  Suggested branch: feat-12/auth/add-user-auth
+  Domain: auth
+  Base branch: main
+```
+
+提案されたブランチでよければ、次のコマンドでブランチを作成します。
+
+```bash
+/claude-idd-framework:idd:issue:branch commit
+```
+
 ## 4. プロジェクト設定
 
 ### 4.1 テンプレートのカスタマイズ
